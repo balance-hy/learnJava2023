@@ -18,5 +18,7 @@ public class Demo1 {
         boolean flag=true;
 
         //查看类方法，ctrl+点击
+
+        //hhh
     }
 }
