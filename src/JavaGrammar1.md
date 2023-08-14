@@ -66,6 +66,28 @@ public class Demo1 {
     }
 }
 ```
+## 文档注释
+```java
+/**
+ * @author 作者
+ * @version 版本
+ * @since jdk版本至少为
+ * @param 参数名
+ * @return 返回值
+ * @throws 抛出异常情况
+ */
+```
+## Scanner
+```java
+Scanner s=new Scanner(System.in);
+
+scanner.close();//用完就关掉
+```
+通过Scanner类的`next()`与`nextLine()`方法获取输入的字符串,
+类似c语言scanf(getchar()读缓冲区)和gets  
+
+`hasNext()`和`hasNextLine()`判断是否还有输入的数据
+其他数据类型输入只需后加数据类型即可如`nextInt()`
 
 
 
