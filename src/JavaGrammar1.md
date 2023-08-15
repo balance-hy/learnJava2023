@@ -88,8 +88,17 @@ scanner.close();//用完就关掉
 
 `hasNext()`和`hasNextLine()`判断是否还有输入的数据
 其他数据类型输入只需后加数据类型即可如`nextInt()`
+## 增强for循环
+```java
+for(声明语句;表达式){
+    //代码    
+}
 
-
+int nums[]={0,10,20,30,40}
+for(int x;nums){
+    System.out.println(x);    
+}
+```
 
 
 
