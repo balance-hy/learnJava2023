@@ -121,11 +121,6 @@ int b[]=new int[10];//一样,new类似于malloc
 //获取数组长度
 int len=a.length;
 ```
-
-
-
-
-
 ## java内存
 堆：
 1. 存放new的对象和数组
@@ -137,6 +132,27 @@ int len=a.length;
 
 方法区：
 1. 所有线程共享
-2. 存放所有class和static变量  
+2. 存放所有class和static变量
 
+## super
+1. super调用父类的构造方法，必须在构造方法的第一个
+2. super必须只能出现在子类的方法或者构造方法中
+3. super和this不能同时调用构造方法  
 
+### Vs this     
+代表对象不同  
+&emsp;&emsp;this:本身调用这个对象  
+&emsp;&emsp;super:代表父类对象的应用 
+前提  
+&emsp;&emsp;this: 没有继承也可以使用      
+&emsp;&emsp;super:继承时才可以使用  
+构造方法  
+&emsp;&emsp;this();本类的构造  
+&emsp;&emsp;super();父类的构造  
+
+## 重写
+需要有继承关系，子类重写父类的方法。  
+1. 方法名必须相同
+2. 参数列表必须相同
+3. 修饰符：范围可以扩大不可缩小 private<default<protected<public
+4. 抛出的异常：范围可以缩小不可扩大
