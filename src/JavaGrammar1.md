@@ -148,11 +148,20 @@ int len=a.length;
 &emsp;&emsp;super:继承时才可以使用  
 构造方法  
 &emsp;&emsp;this();本类的构造  
-&emsp;&emsp;super();父类的构造  
-
+&emsp;&emsp;super();父类的构造
 ## 重写
 需要有继承关系，子类重写父类的方法。  
 1. 方法名必须相同
 2. 参数列表必须相同
 3. 修饰符：范围可以扩大不可缩小 private<default<protected<public
 4. 抛出的异常：范围可以缩小不可扩大
+## 多态
+多态注意事项：  
+1. 多态是方法的多态，属性没有多态
+2. 父类和子类，有联系，类型转换异常！
+3. 存在条件：继承关系 方法需要重写，父类引用指向子类 Father f1=new Son()  
+
+重写时有以下修饰符无法重写：
+1. static 属于类，它不属于实例
+2. final 常量
+3. private
