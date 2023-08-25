@@ -1,4 +1,4 @@
-# <center>java</center>
+# <center>java1</center>
 ## 基本类型
 整数 二进制0b 八进制0 十六进制0x
 ```java
@@ -176,3 +176,19 @@ int len=a.length;
 声明接口的关键字是**interface**，比抽象类更进一步，无法实现方法，仅有方法声明。默认为public abstract修饰  
 
 ## 异常
+idea快捷键ctrl+alt+t选择代码块包裹  
+Throwable>Exception=Error
+```java
+try{
+    //操作
+}catch(异常类型 异常信息变量){
+    //如果出现对应异常,执行
+}finally{
+    //善后工作，无论如何都会执行
+}
+printStackTrace()//打印错误栈信息
+```
+throw:主动抛出异常，一般在方法中使用,代码示例如下  
+`throw new ArithmeticException(); `  
+throws是声明一个异常，写在方法声明中,可以跟多个异常类名，用逗号隔开,方法不处理该异常，由调用该方法的上层语句处理  
+`public void add() throws ArithmeticException,Exception`
