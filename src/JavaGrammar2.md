@@ -34,7 +34,9 @@ Java 中的每一个枚举都继承自 java.lang.Enum 类。当定义一个枚�
 @interface:代表是注解类 
 ### @Override
 重写，只能作用某个方法
+### @Target(ElementType.METHOD)
+修饰注解，表示可以在什么上使用，如上意思是作用在方法
 ### @Deprecated
-表示某个程序（类、方法等）过时
-### @SuppressWarnings()
-抑制编译器警告
+表示某个程序（类、方法等）过时，但（类、方法等）仍可以使用
+### @SuppressWarnings(“*”)
+抑制编译器警告，*为警告类型
