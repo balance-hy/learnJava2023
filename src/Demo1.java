@@ -9,7 +9,9 @@ public class Demo1 {
             }
         };
         test.say();
-
+        Integer a=new Integer(5);
+        Integer b=new Integer(5);
+        System.out.println(a.equals(b));
     }
 }
 class Test{
