@@ -85,3 +85,39 @@ Integer i1 = Integer.parseInt(s2);
 //方式二
 Integer i2 = new Integer(s2);
 ```  
+## StringBuffer
+java.lang.StringBuffer代表**可变的字符序列**，可以对字符串内容进行增删。  
+很多方法和String相同，但StringBuffer是可变长度的(继承了AbstractStringBuilder有属性
+char[] value,而数组是存放在堆中，所以可以修改)  
+
+String VS StringBuffer
+1. String保存字符串常量，里面的值不能修改，每次String的更改，实际上是更改地址，**效率低**
+2. StringBuffer保存字符串变量，里面的可以修改，无需每次更新地址（只有修改导致空间不够才更新地址），**效率高**  
+
+```java
+//String -> StringBuffer
+//方式一，通过构造器
+String s="aaa";
+StringBuffer stringBuffer = new StringBuffer(s);
+
+//方式二 append
+StringBuffer stringBuffer = new StringBuffer();
+StringBuffer a_s=stringBuffer.append(s);
+
+//StringBuffer -> String
+//方式一 toString
+StringBuffer stringBuffer = new StringBuffer("aaa");
+String s=stringBuffer.toString();
+
+//方式二
+StringBuffer stringBuffer = new StringBuffer("aaa");
+String s=new String(stringBuffer);
+```
+StringBuffer是一个容器
+
+## StringBuilder
+继承了AbstractStringBuilder  
+一个可变的字符序列，提供一个与StringBuffer兼容的API，但不保证同步
+即**不是线程安全**的，该类被设计用作StringBuffer的简易替换，用于
+字符串缓冲区被**单线程使用时**，比StringBuffer**快**。  
+在StringBuilder上的主要操作是append和insert。
