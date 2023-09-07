@@ -121,3 +121,27 @@ StringBuffer是一个容器
 即**不是线程安全**的，该类被设计用作StringBuffer的简易替换，用于
 字符串缓冲区被**单线程使用时**，比StringBuffer**快**。  
 在StringBuilder上的主要操作是append和insert。
+
+## BigInteger
+处理大整数
+
+## BigDecimal
+处理高精度数
+
+## 日期类
+### Date
+精确到毫秒，SimpleDateFormat类用于格式和解析日期  
+例如可以把格式（日期->文本）,解析（文本->日期）以及规范化
+```java
+//获取当前系统时间，默认格式为国外
+Date date = new Date();
+//格式化
+SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 hh:mm:ss E");
+String format = simpleDateFormat.format(date);
+//字符串转date
+String s="1996年01月01日 10:20:30 星期一";
+Date parse=simpleDateFormat.parse(s);
+```
+### Calendar
+
+### 
