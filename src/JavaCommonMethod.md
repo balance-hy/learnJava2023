@@ -103,9 +103,7 @@ System.out.println(asList);
 |        exit        |       退出当前程序       |
 |     arraycopy      |   复制数组元素，适合底层调用    |
 | currentTimeMillens | 返回当前时间距19701-1的毫秒数 |
-|         gc         |      运行垃圾回收机制      |  
-|       round        |        四舍五入        |  
-|        sqrt        |        平方根         |
+|         gc         |      运行垃圾回收机制      |
 
 ## BigInteger
 
