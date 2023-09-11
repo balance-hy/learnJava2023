@@ -128,3 +128,26 @@ System.out.println(asList);
 ```java
 divide(bigDecimal1,bigDecimal2.ROUND_CEILING);//保留到分子的精度
 ```
+## Collection
+|     方法      |     作用     |
+|:-----------:|:----------:|
+|     add     |   添加单个元素   |
+|   remove    |   删除指定元素   |
+|  contains   |  查找元素是否存在  |
+|    size     |   获取元素个数   |
+|   isEmpty   |   判断是否为空   |
+|    clear    |     清空     |
+|   addAll    |   添加多个元素   |
+| containsAll | 查找多个元素是否存在 |
+|  removeAll  |   删除多个元素   |
+## List
+|     方法      |          作用          |
+|:-----------:|:--------------------:|
+|     add     |        指定位置添加        |
+|   addAll    |      指定位置添加多个元素      |
+|     get     |       获取指定位置元素       |
+|   indexOf   |   返回obj在集合中首次出现位置    |
+| lastIndexOf |   返回obj在集合中末次出现位置    |
+|   remove    | 移除指定index位置元素，并返回此元素 |
+|     set     |    设置指定位置元素，相当于替换    |
+|   subList   |   返回从指定位置到指定位置的子集合   |

@@ -143,5 +143,110 @@ String s="1996年01月01日 10:20:30 星期一";
 Date parse=simpleDateFormat.parse(s);
 ```
 ### Calendar
+Calendar是抽象类，无法通过new来实例化，可以用它的getInstance方法获取实例  
+该类提供了大量的方法和字段，但没有提供类似data的格式化类，因此需要自己去组合输出，比较灵活
+```java
+Calendar instance = Calendar.getInstance();
+instance.get(Calendar.YEAR);//取年份，其他类似
+System.out.println(instance.get(Calendar.YEAR)
+        +"年"+instance.get(Calendar.MONTH)
+        +"月"+instance.get(5)+"日" 
+        +instance.get(Calendar.HOUR)+":"
+        +instance.get(Calendar.MINUTE)+":"
+        +instance.get(Calendar.SECOND));
+//上面默认是12小时制，若要改为24小时制，将Calendar.HOUR改为Calendar.HOUR_OF_DAY即可
+instance.get(Calendar.HOUR);
+instance.get(Calendar.HOUR_OF_DAY);
+//可以看到括号里还可以写数字，因为Calendar类中数字对应了属性
+```
+### 第三代日期
+前面两代日期都存在问题，比如Calendar是可变的,但日期和时间应为不可变  
+又比如Date中年份从1900开始，月份从0开始，Calendar也没有格式化的工具  
+而且它们都不是线程安全的，也无法处理闰秒问题（每两天多出一秒）  
+#### LocalDate
+包含年月日
+#### LocalTime
+包含时分秒
+#### LocalDateTime
+包含年月日时分秒
+```java
+LocalDateTime now = LocalDateTime.now();//获得实例，其余两个类似
+System.out.println("年"+now.getYear());//获得年份
+System.out.println("年"+now.getMonth());//获得月份 英文 如MARCH
+System.out.println("年"+now.getMonthValue());//获得月份 数字如3
+```
+#### DateTimeFormatter 格式日期类
+和SimpleDateFormat类似  
+```java
+LocalDateTime now = LocalDateTime.now();
+DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss E");
+String date=dateTimeFormatter.format(now);
+System.out.println(date);
+//2023年09月10日 14:17:32 星期日
+```
+#### Instant 时间戳
+类似于Date,提供了一系列和Date类转换的方式  
+```java
+//Instant->Date
+Instant instant=Instant.now();//当前时间戳
+Date date=Date.from(instant)
+//Date->Instant
+Instant instant=date.toInstant();
+```
+plus和minus方法用于知道加减时间后的对应时间。
 
-### 
+## 集合
+### 集合体系
+1. 集合主要是两组（单列集合，双列集合）
+2. Collection 接口有两个重要的子接口 List Set,它们的实现子类都是单列集合，也就是一个个对象(或者说元素)
+3. Map接口的实现子类是双列集合，存放的KEY-VALUE键值对
+
+![Collection](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309111504327.png)
+
+![Map](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309111505273.png)
+
+### Collection
+collection实现子类可以存放多个元素，每个元素可以是Object  
+有些Collection的实现类，可以存放重复元素，有些不可以  
+有些Collection的实现类，是有序的（List），有些无序（Set）  
+Collection接口没有直接的实现子类，是通过它的子接口List、Set来实现的
+#### 遍历
+只要是实现了Collection接口的类，可以用以下两种遍历方式  
+##### Iterator 迭代器
+Iterator对象称为迭代器，主要用于遍历Collection集合中的元素  
+所有实现了Collection接口的集合类都有一个iterator方法，用以返回一个实现了Iterator接口的对象，即迭代器  
+Iterator仅用于遍历集合，Iterrator本身并不存放对象
+Iterator结构如下所示  
+![Iterator](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309111511575.PNG)  
+  
+hasNext用于检测是否还有下一个元素,next用于取出，每次调用next必须使用hasNext检测
+```java
+ctrl+j 快捷键提示
+ctrl+alt+t 代码块
+itit iterator的while循环快捷键
+```
+遍历结束后，迭代器指向最后的元素，若想重新遍历，需要重新调用iterator()方法
+
+##### 增强for循环
+本质上是简化的iterator,只可以用来遍历集合和数组  
+前面记录过了具体使用，此处略  
+
+### List
+List接口是Collection接口的子接口  
+1. List集合类中元素有序（添加顺序和取出顺序一致），且可重复
+2. List集合中的每个元素都有其对应的顺序索引
+
+#### ArrayList
+ArrayList可以加入所有元素，甚至是null值且也可以是多个null  
+ArrayList底层是由数组来实现数据存储的
+ArrayList基本等同于Vector，除了ArrayList是线程不安全的（执行效率高）多线程情况下，不建议使用  
+##### ArrayList扩容机制
+1. ArrayList中维护了一个Object类型的数组elementData
+2. 当创建ArrayList对象时，如果使用的是无参构造器，则初始elementData容量为0，第一次添加，扩容10，若需再次扩容，扩容1.5倍
+3. 如果使用指定大小的构造器，则初始elementData容量为指定大小，若需再次扩容，扩容1.5倍
+
+### Set
+
+
+
+
