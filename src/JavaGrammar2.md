@@ -245,8 +245,30 @@ ArrayList基本等同于Vector，除了ArrayList是线程不安全的（执行�
 2. 当创建ArrayList对象时，如果使用的是无参构造器，则初始elementData容量为0，第一次添加，扩容10，若需再次扩容，扩容1.5倍
 3. 如果使用指定大小的构造器，则初始elementData容量为指定大小，若需再次扩容，扩容1.5倍
 
-### Set
+#### Vector（ArrayList安全版）
+ArrayList底层也是由数组来实现数据存储的  
+Vector是线程同步即线程安全的,效率较低，在开发中，若需要线程同步安全时，考虑使用Vector  
+1. 无参构造，默认10，满后，2倍扩容
+2. 有参构造，每次两倍扩容  
+但其实应该可以指定扩容大小，源码中有设置
 
+#### LinkedList
+LinkedList底层实现了双向链表和双端队列特点  
+可以添加任意元素（元素可以重复，包括null）  
+线程不安全，没有实现同步  
+##### LinkedList 操作机制
+1. LinkedList 底层维护了一个双向链表
+2. LinkedList 中有两个属性first和last分别指向首节点和尾节点
+3. 每个节点（Node对象）里面又维护了prev、next、item三个属性，其中prev指向前一个节点，next指向后一个节点
+4. 所以LinkedList的元素添加和删除，不是通过数组完成的，相对来说效率较高
+### Set
+1. 无序（添加和取出顺序不一致,生成后，取出顺序不会变），无索引，即无法用普通for循环
+2. 不允许重复元素，最多一个null
+#### HashSet
+HashSet接口实现了Set接口  
+HashSet底层实际上是HashMap（数组+链表+红黑树，链表到达一定量，数组大小在一定范围，树化）  
+不允许重复元素，可以存放null值，但是只能有一个null  
+HashSet不保证元素有序，取决于hash后，再确定索引结果
 
 
 

@@ -140,7 +140,7 @@ divide(bigDecimal1,bigDecimal2.ROUND_CEILING);//保留到分子的精度
 |   addAll    |   添加多个元素   |
 | containsAll | 查找多个元素是否存在 |
 |  removeAll  |   删除多个元素   |
-## List
+### List
 |     方法      |          作用          |
 |:-----------:|:--------------------:|
 |     add     |        指定位置添加        |
@@ -151,3 +151,20 @@ divide(bigDecimal1,bigDecimal2.ROUND_CEILING);//保留到分子的精度
 |   remove    | 移除指定index位置元素，并返回此元素 |
 |     set     |    设置指定位置元素，相当于替换    |
 |   subList   |   返回从指定位置到指定位置的子集合   |
+
+#### LinkedList
+|   方法   |     作用      |
+|:------:|:-----------:|
+|  add   |    添加节点     |
+| remove | 删除节点，默认删首节点 |
+|  set   |   修改某个节点    |
+|  get   |   得到某个节点    |
+
+### Set
+|   方法    |   作用   |
+|:-------:|:------:|
+|   add   |   添加   |
+| remove  |   删除   |
+| isEmpty | 判断是否为空 |
+具体自己看类方法
+
