@@ -269,6 +269,15 @@ HashSet接口实现了Set接口
 HashSet底层实际上是HashMap（数组+链表+红黑树，链表到达一定量，数组大小在一定范围，树化）  
 不允许重复元素，可以存放null值，但是只能有一个null  
 HashSet不保证元素有序，取决于hash后，再确定索引结果
+![HashSet](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309131312985.PNG)
+
+##### LinkedHashSet
+HashSet的子类  
+底层是一个LinkedHashMap（HashMap子类），底层维护了一个数组+双向链表,添加以及扩容等机制和HashSet类似，只不过用的是双向链表   
+LinkedHashSet根据元素的hashcode值来决定元素的存储位置，同时用链表维护元素的次序，这使得元素看起来是以**插入顺序保存**的  
+LinkedHashSet不允许添加重复元素
+![LinkedHashSet](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309131521987.PNG)  
+
 
 
 
