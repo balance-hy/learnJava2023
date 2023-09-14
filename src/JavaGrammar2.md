@@ -278,6 +278,72 @@ LinkedHashSet根据元素的hashcode值来决定元素的存储位置，同时�
 LinkedHashSet不允许添加重复元素
 ![LinkedHashSet](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309131521987.PNG)  
 
+### Map
+用于保存具有映射关系的数据（双列）：Key-Value  
+Map中的Key和Value可以是任何引用类型的数据，会被封装到HashMap$Node对象中    
+Map中key不可以重复，value可以重复，当key重复，value值将会被后来值覆盖即替换  
+Map中key可以为空但仅有一个，value可以为空但有多个
+```java
+Map map = new HashMap();
+map.put("no1","hhh");
+map.get("no1"); 
+```
+为方便程序员遍历，创建EntrySet集合，集合里存放Entry  
+keySet:获取所有键  
+entrySet:获取所有关系k-v  
+values:获取所有的值  
+![Map1](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309141411821.PNG)
+示意图：
+![Map2](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309141411660.PNG)
+
+#### Map遍历方式
+HashMap没有实现同步，线程不安全
+```java
+Map map = new HashMap();
+map.put("no1",1);
+map.put("no2",2);
+map.put("no3",3);
+map.put("no4",4);
+map.put("no5",5);
+map.put("no6",6);
+//第一组：先取出所有的Key，通过Key取Value
+Set set = map.keySet();
+//1.增强for:
+for (Object key:set) {
+    System.out.println(key+":"+map.get(key));
+}
+//2.迭代器
+System.out.println("=================");
+Iterator iterator = set.iterator();
+while (iterator.hasNext()) {
+     Object key =  iterator.next();
+     System.out.println(key+":"+map.get(key));
+}
+//第二组：直接通过Values取出所有Value
+Collection values = map.values();
+//1.增强for 略
+//2.迭代器  略
+
+//第三组: 通过EntrySet来获取
+//1.增强for
+System.out.println("=================");
+Set set1 = map.entrySet();//EntrySet里面是Map.Entry
+for (Object entry:set1) {
+      //所以此处需要先转换
+      Map.Entry m=(Map.Entry)entry;
+      System.out.println(m.getKey()+":"+m.getValue());//用Entry的方法getKey和getValue
+}
+//2.迭代器
+System.out.println("=================");
+Iterator iterator1 = set1.i terator();
+while (iterator1.hasNext()) {
+    Object next =  iterator1.next();//本质是HashMap$Node，但若转换为Node，没有相应方法取键值
+    Map.Entry entry=(Map.Entry)next;//所以转换为Entry
+    System.out.println(entry.getKey()+":"+entry.getValue());
+}
+```
+
+
 
 
 

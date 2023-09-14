@@ -168,3 +168,13 @@ divide(bigDecimal1,bigDecimal2.ROUND_CEILING);//保留到分子的精度
 | isEmpty | 判断是否为空 |
 具体自己看类方法
 
+## Map
+|     方法      |       作用       |
+|:-----------:|:--------------:|
+|     put     |       添加       |
+|   remove    |  根据key删除映射关系   |
+|     get     | 根据键获取值,返回用对象接收 |
+|    size     |     获取元素个数     |
+|    clear    |       清空       |
+|   isEmpty   |    判断个数是否为0    |
+| containsKey |    查找键是否存在     |
