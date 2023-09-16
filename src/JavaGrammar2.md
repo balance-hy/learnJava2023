@@ -28,10 +28,11 @@ Java 中的每一个枚举都继承自 java.lang.Enum 类。当定义一个枚�
 | valueOf()    |    将普通字符串转换为枚举实例    |
 | compareTo()    |    比较两个枚举成员在定义时的顺序    |
 | ordinal()   |    获取枚举成员的索引位置    |  
-详见：[http://c.biancheng.net/view/1100.html](http://c.biancheng.net/view/1100.html)
+> 枚举详见：[http://c.biancheng.net/view/1100.html](http://c.biancheng.net/view/1100.html)
 ## 基本注解
 使用Annotation时前加@符号，将其当做一个修饰符使用，用于修饰它支持的程序  
-@interface:代表是注解类 
+### @interface
+代表是注解类 
 ### @Override
 重写，只能作用某个方法
 ### @Deprecated
@@ -87,7 +88,7 @@ Integer i2 = new Integer(s2);
 ```  
 ## StringBuffer
 java.lang.StringBuffer代表**可变的字符序列**，可以对字符串内容进行增删。  
-很多方法和String相同，但StringBuffer是可变长度的(继承了AbstractStringBuilder有属性
+很多方法和String相同，但StringBuffer是可变长度的(继承了AbstractStringBuilder,该类有属性
 char[] value,而数组是存放在堆中，所以可以修改)  
 
 String VS StringBuffer
@@ -255,7 +256,7 @@ Vector是线程同步即线程安全的,效率较低，在开发中，若需要�
 #### LinkedList
 LinkedList底层实现了双向链表和双端队列特点  
 可以添加任意元素（元素可以重复，包括null）  
-线程不安全，没有实现同步  
+线程**不安全**，**没有实现同步**  
 ##### LinkedList 操作机制
 1. LinkedList 底层维护了一个双向链表
 2. LinkedList 中有两个属性first和last分别指向首节点和尾节点
@@ -289,15 +290,15 @@ map.put("no1","hhh");
 map.get("no1"); 
 ```
 为方便程序员遍历，创建EntrySet集合，集合里存放Entry  
-keySet:获取所有键  
-entrySet:获取所有关系k-v  
-values:获取所有的值  
+keySet:获取所有键key  
+EntrySet:获取所有关系k-v  
+values:获取所有的值value  
 ![Map1](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309141411821.PNG)
 示意图：
 ![Map2](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309141411660.PNG)
 
 #### Map遍历方式
-HashMap没有实现同步，线程不安全
+HashMap**没有实现同步，线程不安全**
 ```java
 Map map = new HashMap();
 map.put("no1",1);
