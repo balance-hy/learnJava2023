@@ -179,3 +179,17 @@ divide(bigDecimal1,bigDecimal2.ROUND_CEILING);//保留到分子的精度
 |    clear    |       清空       |
 |   isEmpty   |    判断个数是否为0    |
 | containsKey |    查找键是否存在     |
+
+## Collections
+|                      方法                      |            作用             |
+|:--------------------------------------------:|:-------------------------:|
+|                   reverse                    |        反转List中元素顺序        |
+|                   shuffle                    |      对List集合元素进行随机排序      |
+|                     sort                     | 根据元素的自然顺序对指定List集合元素按升序排序 |
+|            sort(List,Comparator)             |          指定顺序排序           |
+|              swap(List,int,int)              |         i,j位置元素交换         |
+|                 max(也可指定顺序)                  |    根据元素的自然顺序返回指定集合的最大值    |
+|                 min(也可指定顺序)                  |    根据元素的自然顺序返回指定集合的最小值    |
+|                  frequency                   |      返回指定集合中指定元素出现次数      |
+|           copy(List dest,List src)           |        将src复制给dest        |
+| replaceAll(List,Object oldVal,Object newVal) |       用新值替换List中旧值        |

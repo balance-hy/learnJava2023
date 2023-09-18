@@ -225,6 +225,7 @@ hasNext用于检测是否还有下一个元素,next用于取出，每次调用ne
 ctrl+j 快捷键提示
 ctrl+alt+t 代码块
 itit iterator的while循环快捷键
+I 增强for快捷键
 ```
 遍历结束后，迭代器指向最后的元素，若想重新遍历，需要重新调用iterator()方法
 
@@ -279,6 +280,26 @@ LinkedHashSet根据元素的hashcode值来决定元素的存储位置，同时�
 LinkedHashSet不允许添加重复元素
 ![LinkedHashSet](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309131521987.PNG)  
 
+#### TreeSet
+TreeSet继承TreeMap  
+当我们使用无参构造器时，创建的TreeSet依旧无序  
+可以通过传入比较器，从而使之有序  
+```java
+TreeSet treeSet = new TreeSet(new Comparator() {
+    @Override
+    public int compare(Object o1, Object o2) {
+        //调用String类的比较方法
+        return ((String) o1).compareTo((String) o2);
+    }
+});
+treeSet.add("jack");
+treeSet.add("apple");
+treeSet.add("dom");
+treeSet.add("split");
+treeSet.add("zoo");
+System.out.println(treeSet);
+```
+注意当TreeSet传入比较器后，是否加入元素由其决定，比如比较器改为长度比较，则相同长度的元素只能加入一个
 ### Map
 用于保存具有映射关系的数据（双列）：Key-Value  
 Map中的Key和Value可以是任何引用类型的数据，会被封装到HashMap$Node对象中    
@@ -289,9 +310,9 @@ Map map = new HashMap();
 map.put("no1","hhh");
 map.get("no1"); 
 ```
-为方便程序员遍历，创建EntrySet集合，集合里存放Entry  
+为方便程序员遍历，创建entrySet集合，集合里存放Entry  
 keySet:获取所有键key  
-EntrySet:获取所有关系k-v  
+entrySet:获取所有关系k-v  
 values:获取所有的值value  
 ![Map1](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309141411821.PNG)
 示意图：
@@ -343,7 +364,33 @@ while (iterator1.hasNext()) {
     System.out.println(entry.getKey()+":"+entry.getValue());
 }
 ```
+#### Hashtable HashMap安全版
+1. 存放的元素是键值对
+2. Hashtable的键和值都不能为NULL,否则会抛出异常
+3. Hashtable使用方法基本上和HashMap一样
+4. Hashtable是线程安全的，HashMap线程不安全  
 
+扩容机制:  
+* 底层有数组 Hashtable$Entry[] 初始化大小为 11
+* 临界值 threshold 8=11*0.75
+* 执行方法 addEntry来添加k-v 封装到Entry
+* 当达到临界值时 新容量=(旧容量<<1)+1 也就是*2+1
+
+##### Properties
+1. Properties类继承自Hashtable类并且实现了Map接口，也是使用一种键值对的形式来保存数据,k-v不能为null
+2. 它的使用特点和Hashtable类似
+3. Properties还可以用于从 xxx.properties 文件中,加载数据到Properties类对象，并进行读取和修改
+4. 工作后 xxx.properties 文件通常作为配置文件，这个知识点会在IO流中举例。
+
+#### TreeMap
+和TreeSet类似操作,只不过是键值对,略
+
+### 如何选择集合
+![选择集合](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309181428108.PNG)
+
+### Collections工具类
+Collections是一个操作 Set、List、Map等集合的工具类  
+Collections提供了一系列静态的方法对集合元素进行排序、查询和修改等操作  
 
 
 

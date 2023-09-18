@@ -14,11 +14,6 @@ public class Demo1 {
 
 
     }
-    public  int add(int... a){
-        int sum=0;
-        for (int j : a) {
-            sum += j;
-        }
-        return sum;
-    }
+
 }
+
