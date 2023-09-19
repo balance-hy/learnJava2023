@@ -299,7 +299,14 @@ treeSet.add("split");
 treeSet.add("zoo");
 System.out.println(treeSet);
 ```
-注意当TreeSet传入比较器后，是否加入元素由其决定，比如比较器改为长度比较，则相同长度的元素只能加入一个
+注意当TreeSet传入比较器后，是否加入元素由其决定，比如比较器改为长度比较，则相同长度的元素只能加入一个  
+当TreeSet未传入比较器时，会自动调用key所属于的类的Comparable接口，实现去重,如果该类没有实现Comparable接口，会抛出异常  
+```java
+TreeSet treeSet = new TreeSet();
+treeSet.add(new Person());
+class Person{}
+//Exception in thread "main" java.lang.ClassCastException: Person cannot be cast to java.lang.Comparable
+```
 ### Map
 用于保存具有映射关系的数据（双列）：Key-Value  
 Map中的Key和Value可以是任何引用类型的数据，会被封装到HashMap$Node对象中    

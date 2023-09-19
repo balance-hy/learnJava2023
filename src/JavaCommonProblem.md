@@ -10,3 +10,5 @@ equals:
 1. 是Object类的方法,只能判断引用类型
 2. 默认判断的是地址是否相等，子类往往重写该方法，用于判断内容是否相等，比如Integer，String
 
+## comparator和comparable
+> https://cloud.tencent.com/developer/article/1918856
