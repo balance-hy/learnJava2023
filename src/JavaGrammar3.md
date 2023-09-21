@@ -104,5 +104,9 @@ List<Object> list=new ArrayList<String>();//String是Object子类,但会报错
 ### Junit
 在方法上加`@Test`注解，引入依赖后，左侧边栏会出现三角执行按钮，就可以单独执行来测试了。
 
-## 线程
+## 线程基础
+### 进程
+![process](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309211520556.PNG)
 
+### 线程
+![thread](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309211526939.PNG)

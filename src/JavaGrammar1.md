@@ -79,6 +79,7 @@ public class Demo1 {
  * @return 返回值
  * @throws 抛出异常情况
  */
+选定方法，alt+enter再选择add java doc就可以快速添加属性注释
 ```
 ## Scanner
 ```java
