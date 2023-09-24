@@ -193,3 +193,17 @@ divide(bigDecimal1,bigDecimal2.ROUND_CEILING);//保留到分子的精度
 |                  frequency                   |      返回指定集合中指定元素出现次数      |
 |           copy(List dest,List src)           |        将src复制给dest        |
 | replaceAll(List,Object oldVal,Object newVal) |       用新值替换List中旧值        |
+
+## 线程
+|      方法       |       作用       |
+|:-------------:|:--------------:|
+|    sleep()    |    线程睡眠指定时长    |
+|    start()    |     开始执行线程     |
+|     run()     |  调用线程对象run方法   |
+|  interrupt()  | **中断线程并非结束线程** |
+|   setName()   |     设置线程名称     |
+|   getName()   |     获得线程名称     |
+| setPriority() |    设置线程优先级     |
+| getPriority() |    获得线程优先级     |
+|    yield()    |      线程让步      |
+|    join()     |      线程插队      |

@@ -110,3 +110,89 @@ List<Object> list=new ArrayList<String>();//String是Object子类,但会报错
 
 ### 线程
 ![thread](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309211526939.PNG)
+#### 创建线程
+##### 继承Thread类
+方式一：继承Thread(实现了Runnable接口)类，重写run方法
+![thread](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309241513084.PNG)
+当一个类继承了Thread类，该类就可以当线程使用  
+我们会重写run方法，在其中写上自己的业务代码  
+```java
+public class Demo1 {
+    public static void main(String[] args) throws InterruptedException {
+        Cat cat = new Cat();
+        cat.start();//底层由jvm调用了start0方法，创建新线程，注意不能直接调run方法，这样还是在主线程之中
+        for(int i=0;i<10;i++){
+            Thread.sleep(1000);
+            System.out.println(i+" "+Thread.currentThread().getName());//线程main
+        }
+    }
+}
+class Cat extends Thread{
+    int times=0;
+    @Override
+    public void run() {
+        while(true) {
+            System.out.println("this is "+Thread.currentThread().getName());//线程Thread0
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            times++;
+            if (times == 10) {
+                break;
+            }
+        }
+    }
+}
+```
+##### 实现Runnable接口
+方式二：实现Runnable接口，重写run方法  
+为什么需要这种方法？因为：
+1. java是单继承的，在某些情况下一个类可能已经继承了某个父类，这时就无法再继承Thread类了
+2. 此时可以通过实现Runnable接口来创建线程  
+
+```java
+public class Demo1 {
+    public static void main(String[] args) throws InterruptedException {
+        Dog dog = new Dog();
+        //dog.start();//报错，无start方法
+        //dog.run();//正确，但这时main线程，并未多创建线程
+        Thread thread = new Thread(dog);//创建线程，为什么可以把dog放进去？
+        thread.start();//因为这里底层使用了设计模式【代理模式】
+    }
+}
+class Dog implements Runnable{
+    int times=0;
+    @Override
+    public void run() {
+        while(true){
+            System.out.println("this is a dog and is "+Thread.currentThread().getName());
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            times++;
+            if(times==10){
+                break;
+            }
+        }
+    }
+}
+```
+![区别](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309241647375.PNG)
+这里不是说就不可以通过继承Thread来操作同一资源了，比如：
+![threadMore](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309241654164.PNG)
+这就是一个类多次实例化创建不同线程操作同一资源的例子  
+#### 线程终止
+1. 当线程完成任务后，会自动退出
+2. 还可以通过使用变量来控制run方法终止的方式结束线程
+
+简单来说之前是while循环，在主线程设置flag为false，让while循环结束就可以控制子线程退出  
+##### yield
+线程的礼让，让出cpu，让其他线程执行，但礼让的时间不确定，所以不一定礼让成功。但其实取决于cpu，如果资源够多
+就不会出现让步的效果，因为此时同时执行也是可以的。
+
+##### join
+线程插队。插队的线程一旦插队成功，则肯定先执行完插入的线程所有的任务。
