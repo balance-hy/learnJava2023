@@ -1,5 +1,7 @@
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
@@ -14,29 +16,32 @@ public class Demo1 {
 
 
     public static void main(String[] args) throws InterruptedException {
-        Dog dog = new Dog();
-        //dog.start();//报错，无start方法
-        //dog.run();//正确，但这时main线程，并未多创建线程
-        Thread thread = new Thread(dog);
-        thread.start();
+
     }
-}
-class Dog implements Runnable{
-    int times=0;
-    @Override
-    public void run() {
-        while(true){
-            System.out.println("this is a dog and is "+Thread.currentThread().getName());
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+    @Test
+    public void delete1(){
+        File file = new File("D:\\this.txt");
+        if(file.exists()){
+            if(file.delete()){
+                System.out.println("文件删除成功");
+            }else{
+                System.out.println("文件删除失败");
             }
-            times++;
-            if(times==10){
-                break;
-            }
+        }else{
+            System.out.println("文件不存在");
         }
+
+        File file1 = new File("D:\\this");
+        if(file1.exists()){
+            if(file1.delete()){
+                System.out.println("目录删除成功");
+            }else{
+                System.out.println("目录删除失败");
+            }
+        }else{
+            System.out.println("目录不存在");
+        }
+
     }
 }
 

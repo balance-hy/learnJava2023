@@ -196,3 +196,112 @@ class Dog implements Runnable{
 
 ##### join
 线程插队。插队的线程一旦插队成功，则肯定先执行完插入的线程所有的任务。
+
+#### 用户线程、守护线程
+**用户线程也叫工作线程**，线程的任务执行完或通知方式来结束  
+**守护线程一般是为工作线程服务的**，当所有的用户线程结束，守护线程自动结束  
+常见的守护线程：垃圾回收机制  
+```java
+线程名.setDaemon(true);
+public static void main(String[] args) throws InterruptedException {
+        Dog dog = new Dog();
+
+        Thread thread = new Thread(dog);
+        thread.setDaemon(true);
+        thread.start();
+}
+//此时主线程结束，thread线程结束        
+```
+#### 线程状态
+![threadState](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309261426513.PNG)
+线程状态。 线程可以处于以下状态之一：
+* NEW
+* 尚未启动的线程处于此状态。
+* RUNNABLE
+* 在Java虚拟机中执行的线程处于此状态。
+* BLOCKED
+* 被阻塞等待监视器锁定的线程处于此状态。
+* WAITING
+* 正在等待另一个线程执行特定动作的线程处于此状态。
+* TIMED_WAITING
+* 正在等待另一个线程执行动作达到指定等待时间的线程处于此状态。
+* TERMINATED
+* 已退出的线程处于此状态。
+* 一个线程可以在给定时间点处于一个状态。 这些状态是不反映任何操作系统线程状态的虚拟机状态。  
+
+#### 线程同步
+在多线程编程时，一些敏感数据不允许被多个线程同时访问，此时就使用同步访问技术
+保证数据在同一时刻，最多有一个线程访问，以保证数据完整性。  
+具体方法-**Synchronized**  
+1.同步代码块，推荐，范围小，效率相对高
+```java
+synchronized (){//得到对象的锁，才能操作代码
+    //需要被同步代码
+}
+```
+2.方法声明中，表示整个方法为同步方法  
+```java
+public synchronized void m(String name){
+    //需要被同步代码
+}
+```
+### 锁
+#### 互斥锁
+1. java语言中，引入了对象互斥锁的概念，来保证共享数据操作的完整性
+2. 每个对象都对应于一个可称为“互斥锁”的标记，这个标记用来保证在任何时刻只有一个线程访问该对象
+3. 关键字synchronized来与对象的互斥锁联系。当某个对象用synchronized修饰时，表明该对象在任一时刻只能由一个线程访问
+4. 同步局限性：会导致程序的执行效率变低
+5. 同步方法（非静态）的锁可以是this，可以是其他对象。（**都需保证为同一对象**）
+6. 同步方法（静态）的锁为当前类本身。xxx.class  
+```java
+synchronized (this/其他对象){
+    //需要被同步代码
+}
+```
+
+## IO流
+### 文件
+#### 创建文件
+|                  方法                  |       作用       |
+|:------------------------------------:|:--------------:|
+|      new File(String pathname)       | 根据路径构建一个File对象 |
+|  new File(File parent,String child)  |  根据父目录文件+子路径   |
+| new File(String parent,String child) | 根据父目录+子路径构建文件  |
+|         file.createNewFile()         |      创建文件      |
+#### 获取文件信息
+|           方法           |     作用     |
+|:----------------------:|:----------:|
+|     file.getName()     |   获取文件名    |
+| file.getAbsolutePath() |   获取绝对路径   |
+|    file.getParent()    |  获取文件父级目录  |
+|     file.length()      | 获取文件大小（字节） |
+|     file.exists()      |   文件是否存在   |
+|     file.isFile()      |  是不是一个文件   |
+|   file.isDirectory()   |   是不是目录    |
+#### 创建目录
+```java
+//mkdir:创建一级目录 file.mkdir()
+//mkdirs:创建多级目录 file.mkdirs()
+//delete:删除空目录或文件
+File file = new File("D:\\this.txt");
+if(file.exists()){
+    if(file.delete()){
+        System.out.println("文件删除成功");
+    }else{
+        System.out.println("文件删除失败");
+    }
+}else{
+    System.out.println("文件不存在");
+}
+
+File file1 = new File("D:\\this");
+if(file1.exists()){
+    if(file1.delete()){
+        System.out.println("目录删除成功");
+    }else{
+        System.out.println("目录删除失败");
+    }
+}else{
+    System.out.println("目录不存在");
+}
+```
