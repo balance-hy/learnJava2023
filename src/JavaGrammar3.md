@@ -305,4 +305,91 @@ if(file1.exists()){
     System.out.println("目录不存在");
 }
 ```
-git isi test 
+### 字符流和字节流
+|        抽象基类        |     字节流      |  字符流   |
+|:------------------:|:------------:|:------:|
+|      **输入流**       | InputStream  | Reader |
+|      **输出流**       | OutputStream | Writer |
+Java IO流涉及40多个类，但都是从如上四个基类派生的  
+由这四个类派生的子类命名都是以其父类名作为子类的后缀  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/img/1.png)
+#### FileInputStream 
+![](https://raw.githubusercontent.com/balance-hy/typora/master/img/20231001211851.png)
+```java
+//read 使用示范
+public void read1(){
+    File file = new File("E:\\test.txt");
+    FileInputStream fileInputStream=null;
+    int readData=0;
+    try {
+        fileInputStream = new FileInputStream(file);
+        //readData接受读取的字节
+        while((readData=fileInputStream.read())!=-1){
+            System.out.print((char)readData);
+        }
+    } catch (IOException e) {
+        throw new RuntimeException(e);
+    }finally {
+        try {
+            //用完就关闭，以免造成资源浪费
+            fileInputStream.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+//read 数组接收
+public void read2(){
+    File file = new File("E:\\test.txt");
+    FileInputStream fileInputStream=null;
+    byte[] bytes = new byte[8];
+    int readLen=0;
+    try {
+        fileInputStream = new FileInputStream(file);
+        //读到返回-1即文件末尾结束
+        while((readLen=fileInputStream.read(bytes))!=-1){//注意bytes数组实际上每次从头写入
+            System.out.print(new String(bytes,0,readLen));//使用String构造器，offset代表开始截取的位置
+        }
+    } catch (IOException e) {
+        throw new RuntimeException(e);
+    }finally {
+        try {
+            fileInputStream.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+#### FileOutPutStream
+![](https://raw.githubusercontent.com/balance-hy/typora/master/img/20231001214859.png)
+```java
+public void write1(){
+    //注意FileOutputStream如果文件不存在会创建。
+    String filePath="E:\\test.txt";
+    FileOutputStream fileOutputStream=null;
+    try {
+        //默认是覆盖，构造时添加true，代表文件末尾追加
+        fileOutputStream=new FileOutputStream(filePath,true);
+        //方法1 写入一个字节
+        fileOutputStream.write('a');
+        //方法2 写入一个字符串
+        String str="this is String";
+        //因为write要求字符数组，用字符串的方法转化
+        fileOutputStream.write(str.getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                fileOutputStream.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+```
+#### BufferedInputStream
+
+
+#### ObjectInputStream
+

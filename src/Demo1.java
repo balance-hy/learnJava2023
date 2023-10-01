@@ -1,7 +1,6 @@
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
@@ -19,28 +18,31 @@ public class Demo1 {
 
     }
     @Test
-    public void delete1(){
-        File file = new File("D:\\this.txt");
-        if(file.exists()){
-            if(file.delete()){
-                System.out.println("文件删除成功");
-            }else{
-                System.out.println("文件删除失败");
+    public void write1(){
+        //注意FileOutputStream如果文件不存在会创建。
+        String filePath="E:\\test.txt";
+        FileOutputStream fileOutputStream=null;
+
+        try {
+            //默认是覆盖，构造时添加true，代表文件末尾追加
+            fileOutputStream=new FileOutputStream(filePath,true);
+            //方法1 写入一个字节
+            fileOutputStream.write('a');
+            //方法2 写入一个字符串
+            String str="this is String";
+            //因为write要求字符数组，用字符串的方法转化
+            fileOutputStream.write(str.getBytes());
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                fileOutputStream.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-        }else{
-            System.out.println("文件不存在");
         }
 
-        File file1 = new File("D:\\this");
-        if(file1.exists()){
-            if(file1.delete()){
-                System.out.println("目录删除成功");
-            }else{
-                System.out.println("目录删除失败");
-            }
-        }else{
-            System.out.println("目录不存在");
-        }
 
     }
 }
