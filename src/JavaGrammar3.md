@@ -312,8 +312,9 @@ if(file1.exists()){
 |      **输出流**       | OutputStream | Writer |
 Java IO流涉及40多个类，但都是从如上四个基类派生的  
 由这四个类派生的子类命名都是以其父类名作为子类的后缀  
+#### 字节流
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/img/1.png)
-#### FileInputStream 
+##### FileInputStream 
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/img/20231001211851.png)
 ```java
 //read 使用示范
@@ -361,7 +362,7 @@ public void read2(){
     }
 }
 ```
-#### FileOutPutStream
+##### FileOutPutStream
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/img/20231001214859.png)
 ```java
 public void write1(){
@@ -369,7 +370,7 @@ public void write1(){
     String filePath="E:\\test.txt";
     FileOutputStream fileOutputStream=null;
     try {
-        //默认是覆盖，构造时添加true，代表文件末尾追加
+        //默认是覆盖，构造时添加true，代表文件末尾追加，但这只表示是一次读取且关闭，连续写是不会覆盖的
         fileOutputStream=new FileOutputStream(filePath,true);
         //方法1 写入一个字节
         fileOutputStream.write('a');
@@ -377,6 +378,8 @@ public void write1(){
         String str="this is String";
         //因为write要求字符数组，用字符串的方法转化
         fileOutputStream.write(str.getBytes());
+        //也可指定字符数组写入范围，如下写入前三个字节
+        fileOutputStream.write(str.getBytes(),0,3);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }finally {
@@ -388,8 +391,64 @@ public void write1(){
         }
     }
 ```
-#### BufferedInputStream
+##### BufferedInputStream
 
 
-#### ObjectInputStream
+##### ObjectInputStream
+
+#### 字符流
+##### FileReader
+![](https://raw.githubusercontent.com/balance-hy/typora/master/img/20231005152716.png)
+![](https://raw.githubusercontent.com/balance-hy/typora/master/img/20231005153126.png)
+```java
+//与FileInputStream类似，仅写一种作为示例
+public void reader1(){
+     String filePath="E:\\test.txt";
+     FileReader fileReader=null;
+     int readLen=0;
+     char data[]=new char[8];
+     try {
+         fileReader=new FileReader(filePath);
+         while ((readLen=fileReader.read(data))!=-1) {
+             System.out.print(new String(data,0,readLen));
+         }
+     } catch (IOException e) {
+        throw new RuntimeException(e);
+     }finally {
+         try {
+             fileReader.close();
+         } catch (IOException e) {
+             throw new RuntimeException(e);
+         }
+     }
+}
+```
+##### FileWriter
+![](https://raw.githubusercontent.com/balance-hy/typora/master/img/20231005153330.png)
+![](https://raw.githubusercontent.com/balance-hy/typora/master/img/20231005153513.png)
+```java
+//与FileOutputStream类似
+public void write1(){
+   //注意FileWriter如果文件不存在会创建。
+   String filePath="E:\\test1.txt";
+   FileWriter fileWriter=null;
+   try {
+        fileWriter=new FileWriter(filePath);
+        fileWriter.write('a');
+        fileWriter.write("hhhh");
+        fileWriter.write("我是谁",0,2);
+        String str="怎么回事";
+        fileWriter.write(str.toCharArray());
+        fileWriter.write(str.toCharArray(),0,2);
+   } catch (IOException e) {
+        throw new RuntimeException(e);
+   }finally {
+       try {
+            fileWriter.close();//一定要关闭或者刷新，否则还是在内存中，并未真正写入
+       } catch (IOException e) {
+            throw new RuntimeException(e);
+       }
+   }
+}
+```
 

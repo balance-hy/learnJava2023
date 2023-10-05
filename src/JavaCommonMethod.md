@@ -47,6 +47,7 @@ hashcode();//返回对象的哈希值
 |    compareTo     |        比较两字符串大小         |
 |   toCharArray    |         转换为字符数组         |
 |      format      |          格式字符串          |
+|     getBytes     |       字符串转Byte数组        |
 
 ## String Buffer
 |     方法      |                 作用                  |

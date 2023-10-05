@@ -19,31 +19,26 @@ public class Demo1 {
     }
     @Test
     public void write1(){
-        //注意FileOutputStream如果文件不存在会创建。
-        String filePath="E:\\test.txt";
-        FileOutputStream fileOutputStream=null;
-
+        //注意FileWriter如果文件不存在会创建。
+        String filePath="E:\\test1.txt";
+        FileWriter fileWriter=null;
         try {
-            //默认是覆盖，构造时添加true，代表文件末尾追加
-            fileOutputStream=new FileOutputStream(filePath,true);
-            //方法1 写入一个字节
-            fileOutputStream.write('a');
-            //方法2 写入一个字符串
-            String str="this is String";
-            //因为write要求字符数组，用字符串的方法转化
-            fileOutputStream.write(str.getBytes());
-
+            fileWriter=new FileWriter(filePath);
+            fileWriter.write('a');
+            fileWriter.write("hhhh");
+            fileWriter.write("我是谁",0,2);
+            String str="怎么回事";
+            fileWriter.write(str.toCharArray());
+            fileWriter.write(str.toCharArray(),0,2);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }finally {
             try {
-                fileOutputStream.close();
+                fileWriter.close();//一定要关闭或者刷新，否则还是在内存中，并未真正写入
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-
-
     }
 }
 
