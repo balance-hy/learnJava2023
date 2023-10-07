@@ -305,14 +305,17 @@ if(file1.exists()){
     System.out.println("目录不存在");
 }
 ```
-### 字符流和字节流
+### 节点流
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310071353852.PNG)
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310071359537.PNG)  
+
 |        抽象基类        |     字节流      |  字符流   |
 |:------------------:|:------------:|:------:|
 |      **输入流**       | InputStream  | Reader |
 |      **输出流**       | OutputStream | Writer |
 Java IO流涉及40多个类，但都是从如上四个基类派生的  
 由这四个类派生的子类命名都是以其父类名作为子类的后缀  
-#### 字节流
+#### 字节流 二进制文件专用
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/img/1.png)
 ##### FileInputStream 
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/img/20231001211851.png)
@@ -391,11 +394,6 @@ public void write1(){
         }
     }
 ```
-##### BufferedInputStream
-
-
-##### ObjectInputStream
-
 #### 字符流
 ##### FileReader
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/img/20231005152716.png)
@@ -449,6 +447,114 @@ public void write1(){
             throw new RuntimeException(e);
        }
    }
+}
+```
+### 处理流
+处理流也称**包装流**，是“连接” 在已存在的流（节点流或处理流）之上，为程序提供更为强大的读写功能
+如BufferedReader、BufferedWriter。其实，就是定义了一个接口对象，也就是多态的应用
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310071356449.PNG)
+#### 字节流 二进制文件专用
+##### BufferedInputStream BufferedOutputStream
+```java
+@Test
+public void readAndWrite() throws Exception {
+    String srcPath="D:\\1.PNG";
+    String destPath="D:\\2.PNG";
+    BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(srcPath));
+    BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(destPath));
+    byte a[]=new byte[1024];
+    int readLen=0;
+    while((readLen=bufferedInputStream.read(a))!=-1){
+        bufferedOutputStream.write(a,0,readLen);
+    }
+    bufferedInputStream.close();
+    bufferedOutputStream.close();
+}
+```
+##### ObjectInputStream 反序列化
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310071539103.PNG)
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310071541061.PNG)
+
+
+
+##### ObjectOutputStream 序列化
+```java
+public class Demo1 {
+    public static void main(String[] args) throws InterruptedException {
+
+    }
+    @Test
+    public void objectOut() throws Exception {
+        //注意此时为dat后缀，序列化后的文件格式按照他的指定来
+        String filePath="D:\\data.dat";
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(filePath));
+
+        objectOutputStream.write(100);//int-> Integer(实现了Serializable接口) 自动装箱 下面同理
+        objectOutputStream.writeBoolean(false);
+        objectOutputStream.writeChar('a');
+        objectOutputStream.writeDouble(3.12);
+        objectOutputStream.writeUTF("我是谁");//注意字符串为writeUTF
+
+        objectOutputStream.writeObject(new Dog());//注意对象所在类需要实现Serializable接口
+
+        objectOutputStream.close();
+    }
+}
+class Dog implements Serializable{
+    private String name;
+    private int age;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+```
+
+#### 字符流
+##### BufferedReader
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310071412965.PNG)
+关闭处理流时，只需要关闭外层流（所包装的节点流，系统会自动关闭）即可  
+```java
+@Test
+public void read1() throws Exception{//所以在这里抛出
+    String filePath="D:\\test.txt";
+    BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));//这里会要求处理异常
+    // 读取
+    String line=null;
+    //按行读取文件，高效，当返回null时文件读取完毕
+    while((line=bufferedReader.readLine())!=null){
+        System.out.println(line);
+    }
+    //只需关闭外层流
+    bufferedReader.close();
+}
+```
+##### BufferedWriter
+```java
+@Test
+public void write1() throws IOException {//所以在这里抛出
+    String filePath="D:\\test.txt";
+    BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath));//这里需要处理异常
+    bufferedWriter.write("什么事情！");
+    bufferedWriter.newLine();//插入一个与系统相关的换行
+    bufferedWriter.write("什么事情！");
+    bufferedWriter.newLine();
+    bufferedWriter.write("什么事情！！！");
+    bufferedWriter.newLine();
+
+    bufferedWriter.close();
 }
 ```
 

@@ -18,28 +18,40 @@ public class Demo1 {
 
     }
     @Test
-    public void write1(){
-        //注意FileWriter如果文件不存在会创建。
-        String filePath="E:\\test1.txt";
-        FileWriter fileWriter=null;
-        try {
-            fileWriter=new FileWriter(filePath);
-            fileWriter.write('a');
-            fileWriter.write("hhhh");
-            fileWriter.write("我是谁",0,2);
-            String str="怎么回事";
-            fileWriter.write(str.toCharArray());
-            fileWriter.write(str.toCharArray(),0,2);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }finally {
-            try {
-                fileWriter.close();//一定要关闭或者刷新，否则还是在内存中，并未真正写入
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+    public void objectOut() throws Exception {
+        //注意此时为dat后缀，序列化后的文件格式按照他的指定来
+        String filePath="D:\\data.dat";
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(filePath));
+
+        objectOutputStream.write(100);//int-> Integer(实现了Serializable接口) 自动装箱 下面同理
+        objectOutputStream.writeBoolean(false);
+        objectOutputStream.writeChar('a');
+        objectOutputStream.writeDouble(3.12);
+        objectOutputStream.writeUTF("我是谁");//注意字符串为writeUTF
+
+        objectOutputStream.writeObject(new Dog());//注意对象所在类需要实现Serializable接口
+
+        objectOutputStream.close();
     }
 }
+class Dog implements Serializable{
+    private String name;
+    private int age;
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
 
