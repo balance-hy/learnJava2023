@@ -524,7 +524,7 @@ class Dog implements Serializable{
 
 #### 字符流
 ##### BufferedReader
-![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310071412965.PNG)
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310071412965.PNG)  
 关闭处理流时，只需要关闭外层流（所包装的节点流，系统会自动关闭）即可  
 ```java
 @Test
