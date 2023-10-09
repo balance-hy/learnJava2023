@@ -387,8 +387,37 @@ while (iterator1.hasNext()) {
 1. Properties类继承自Hashtable类并且实现了Map接口，也是使用一种键值对的形式来保存数据,k-v不能为null
 2. 它的使用特点和Hashtable类似
 3. Properties还可以用于从 xxx.properties 文件中,加载数据到Properties类对象，并进行读取和修改
-4. 工作后 xxx.properties 文件通常作为配置文件，这个知识点会在IO流中举例。
-
+4. 工作后 xxx.properties 文件通常作为配置文件，这个知识点会在IO流中举例。  
+传统方法读取配置：  
+```java
+public void readMysql() throws IOException {
+    BufferedReader bufferedReader = new BufferedReader(new FileReader("src\\mysql.properties"));//根目录下查找
+    String Line="";
+    while((Line=bufferedReader.readLine())!=null){
+        String sp[]=Line.split("=");//切割字符串
+        System.out.println(sp[0]+"="+sp[1]);
+    }
+    bufferedReader.close();
+}
+```
+如何更简便读取？  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310091516235.PNG)  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310091517332.PNG)  
+读取示例:  
+```java
+public void readMysql() throws IOException {
+    Properties properties = new Properties();
+    //加载指定配置文件到properties对象
+    properties.load(new FileReader("src\\mysql.properties"));
+    //将k-v 显示到显示器
+    properties.list(System.out);
+    //根据k获取v
+    String user=properties.getProperty("user");
+    String pwd=properties.getProperty("password");
+    System.out.println(user);
+    System.out.println(pwd);
+}
+```
 #### TreeMap
 和TreeSet类似操作,只不过是键值对,略
 

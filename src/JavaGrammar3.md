@@ -474,8 +474,27 @@ public void readAndWrite() throws Exception {
 ##### ObjectInputStream 反序列化
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310071539103.PNG)
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310071541061.PNG)
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310091329063.PNG)
+```java
+//注意，如果要使用dog对象，需要保证Dog类是在可访问的位置上，如果在不同包下无法访问会出现问题
+public void objectOut() throws Exception {
+    //指定反序列化文件
+    String filePath="D:\\data1.dat";
+    ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(filePath));
 
+    //读取（反序列化）的顺序需要和你保存数据（序列化）的顺序一致
+    //否则会出现异常
+    System.out.println(objectInputStream.readInt());
+    System.out.println(objectInputStream.readBoolean());
+    System.out.println(objectInputStream.readChar());
+    System.out.println(objectInputStream.readDouble());
+    System.out.println(objectInputStream.readUTF());
+    Object dog=objectInputStream.readObject();
+    System.out.println(dog);
 
+    objectInputStream.close();
+}
+```
 
 ##### ObjectOutputStream 序列化
 ```java
@@ -488,8 +507,8 @@ public class Demo1 {
         //注意此时为dat后缀，序列化后的文件格式按照他的指定来
         String filePath="D:\\data.dat";
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(filePath));
-
-        objectOutputStream.write(100);//int-> Integer(实现了Serializable接口) 自动装箱 下面同理
+        //注意这里如果直接write(100)是没有类型的
+        objectOutputStream.writeInt(100);//int-> Integer(实现了Serializable接口) 自动装箱 下面同理
         objectOutputStream.writeBoolean(false);
         objectOutputStream.writeChar('a');
         objectOutputStream.writeDouble(3.12);
@@ -557,4 +576,69 @@ public void write1() throws IOException {//所以在这里抛出
     bufferedWriter.close();
 }
 ```
+### 标准输入输出流
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310091338261.PNG)
+### 打印流
+只有输出流，没有输入流  
+#### printStream
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310091436683.PNG)
+```java
+public void print1() throws IOException {
+    PrintStream out=System.out;
+    //默认输出即标准输出 显示器显示
+    out.print("hello");
+    //print 底层是write方法，所以也可以如下使用
+    out.write("jello".getBytes());
+    out.close();
+
+    //可以修改默认输出，从而让其输出到文件
+    System.setOut(new PrintStream("D:\\test2.txt"));
+    System.out.println("heloo");
+    System.out.close();
+}
+```
+#### printWriter
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310091437653.PNG)  
+```java
+public void print2() throws IOException {
+    //PrintWriter printWriter=new PrintWriter(System.out);//默认输出到显示器
+    PrintWriter printWriter=new PrintWriter(new FileWriter("D:\\test2.txt"));
+    printWriter.print("fafaf");
+    printWriter.close();//注意要关闭，否则不会写入文件
+}
+```
+### 转换流
+字节流->字符流  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310091349304.PNG)  
+当把文件编码从utf-8改为其他编码后，例如ANSI,再进行读取，会出现乱码问题，因为字符流默认按utf-8读取  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310091351612.PNG)  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310091356956.PNG)  
+#### InputStreamReader
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310091355600.PNG)  
+为了正确读取文件内容，可以用InputStreamReader包装（转换）字节流，指定读取编码格式  
+```java
+public void transformation() throws IOException {
+    String filePath="D:\\test.txt";
+    InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(filePath),"gbk");
+    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+    String s=bufferedReader.readLine();
+    System.out.println("内容="+s);
+    bufferedReader.close();
+}
+```
+#### OutputStreamWriter
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310091358067.PNG)  
+为了写入指定的编码格式文件，可以用OutputStreamWriter包装（转换）字节流  
+```java
+public void transformation() throws IOException {
+    String filePath="D:\\test1.txt";
+    OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(filePath),"gbk");
+    outputStreamWriter.write("Hello，我是");//也可以再包装一层bufferedwriter
+    outputStreamWriter.close();
+}
+```
+
+
+
+
 
