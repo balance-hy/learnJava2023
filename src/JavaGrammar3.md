@@ -262,12 +262,12 @@ synchronized (this/其他对象){
 ## IO流
 ### 文件
 #### 创建文件
-|                  方法                  |       作用       |
-|:------------------------------------:|:--------------:|
-|      new File(String pathname)       | 根据路径构建一个File对象 |
-|  new File(File parent,String child)  |  根据父目录文件+子路径   |
-| new File(String parent,String child) | 根据父目录+子路径构建文件  |
-|         file.createNewFile()         |      创建文件      |
+|                   方法                   |       作用       |
+|:--------------------------------------:|:--------------:|
+|       new File(String pathname)        | 根据路径构建一个File对象 |
+|   new File(File parent,String child)   |  根据父目录文件+子路径   |
+|  new File(String parent,String child)  | 根据父目录+子路径构建文件  |
+|        **file.createNewFile()**        |      创建文件      |
 #### 获取文件信息
 |           方法           |     作用     |
 |:----------------------:|:----------:|

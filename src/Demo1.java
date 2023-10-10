@@ -18,17 +18,17 @@ public class Demo1 {
 
     }
     @Test
-    public void readMysql() throws IOException {
-        Properties properties = new Properties();
-        //加载指定配置文件到properties对象
-        properties.load(new FileReader("src\\mysql.properties"));
-        //将k-v 显示到显示器
-        properties.list(System.out);
-        //根据k获取v
-        String user=properties.getProperty("user");
-        String pwd=properties.getProperty("password");
-        System.out.println(user);
-        System.out.println(pwd);
+    public void homeWork() throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new FileReader("D:\\test.txt"));
+        String Line=null;
+        int i=1;
+        while((Line=bufferedReader.readLine())!=null){
+            System.out.println((i++)+" "+Line);
+        }
+
+
+
+        bufferedReader.close();
     }
 }
 

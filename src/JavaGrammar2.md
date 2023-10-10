@@ -417,6 +417,16 @@ public void readMysql() throws IOException {
     System.out.println(user);
     System.out.println(pwd);
 }
+public void setMysql() throws IOException {
+    Properties properties = new Properties();
+    //加载指定配置文件到properties对象
+    properties.load(new FileReader("src\\mysql.properties"));
+    //修改
+    properties.setProperty("user","balance");
+    properties.setProperty("charset","utf-8");
+    //将修改保存
+    properties.store(new FileOutputStream("src\\mysql.properties"),null);
+}
 ```
 #### TreeMap
 和TreeSet类似操作,只不过是键值对,略
