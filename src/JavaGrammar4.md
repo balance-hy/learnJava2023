@@ -12,8 +12,9 @@ public void InetAddress_() throws UnknownHostException {
 
     //根据指定主机名/域名 获得inetAddress对象
     InetAddress inetAddress1=InetAddress.getByName("www.baidu.com");//对于网站来说主机名=域名
-    System.out.println(inetAddress1);
-
+    System.out.println(inetAddress1);//传递一个主机名，它将尝试解析主机名并返回与之关联的 IP 地址。
+                                    // 如果你向该方法传递一个 IP 地址，
+                                    // 它将返回一个 InetAddress 对象，其中包含了 IP 地址，但主机名字段将为 null。
     //根据指定IP地址 获得inetAddress对象
     String ip="153.3.238.110";
     String ip1[]=ip.split("\\.");
@@ -26,7 +27,7 @@ public void InetAddress_() throws UnknownHostException {
     System.out.println(inetAddress2);
 }
 ```
-### socket
+### socket Tcp
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310121452160.PNG)  
 #### TCP字节流
 题目一：
@@ -230,6 +231,55 @@ public class SocketClient {
         bufferedOutputStream.close();
         bufferedReader.close();
         socket.close();
+    }
+}
+```
+### UDP
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310151327701.PNG)  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310151329017.PNG)
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310151327055.PNG)  
+#### UDP实战
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310151332670.PNG)  
+```java
+public class udpReceive {
+    public static void main(String[] args) throws IOException {
+        DatagramSocket datagramSocket = new DatagramSocket(9999);
+        //UDP包最大为64k=64*1024，按需构造大小
+        byte a[]=new byte[1024];
+        DatagramPacket datagramPacket = new DatagramPacket(a, a.length);
+        System.out.println("准备接受数据");
+        datagramSocket.receive(datagramPacket);
+
+        //输出接收到的数据  datagramPacket.getData()实际接收到的数据 datagramPacket.getLength()实际接收到的数据长度
+        System.out.println(new String(datagramPacket.getData(),0,datagramPacket.getLength()));
+
+        //输出数据报
+        byte b[]="ok".getBytes();
+        DatagramPacket datagramPacket1 = new DatagramPacket(b, b.length, InetAddress.getByName("10.20.108.9"), 9998);
+        datagramSocket.send(datagramPacket1);
+
+        //关闭资源
+        datagramSocket.close();
+    }
+}
+
+public class udpSender {
+    public static void main(String[] args) throws IOException {
+        //指定接收的端口
+        DatagramSocket datagramSocket = new DatagramSocket(9998);
+        byte a[]="hello udp receive".getBytes();//构建发送数组
+        //构建数据报
+        DatagramPacket datagramPacket = new DatagramPacket(a,a.length, InetAddress.getByName("10.20.108.9"),9999);
+        datagramSocket.send(datagramPacket);//发送数据报
+
+        //接收数据报 UDP包最大为64k=64*1024，按需构造大小
+        byte b[]=new byte[1024];
+        DatagramPacket datagramPacket1 = new DatagramPacket(b, b.length);
+        System.out.println("准备接受数据");
+        datagramSocket.receive(datagramPacket1);
+        System.out.println(new String(datagramPacket1.getData(),0,datagramPacket1.getLength()));
+        //关闭资源
+        datagramSocket.close();
     }
 }
 ```

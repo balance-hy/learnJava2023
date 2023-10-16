@@ -12,23 +12,26 @@ public class SocketServer {
         //如果没有客户端连接时，程序会阻塞在这里
         Socket socket = serverSocket.accept();
 
-        BufferedInputStream bufferedInputStream = new BufferedInputStream(socket.getInputStream());
-        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream("src\\2.PNG"));
-        byte a[]=new byte[1024];
-        int readLen=0;
-        while((readLen=bufferedInputStream.read(a))!=-1){
-            bufferedOutputStream.write(a,0,readLen);
-        }
-
-
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        bufferedWriter.write("收到图片");
-        bufferedWriter.newLine();//设置结束标记，因为readLine读到此结束
-        bufferedWriter.flush();//记得刷新，否则写入失败
+        String s;
+        while ((s=bufferedReader.readLine())!="\n") {
+
+        }
+        if(s.equals("name")){
+            bufferedWriter.write("我是nova");
+        }else if(s.equals("hobby")){
+            bufferedWriter.write("Java");
+        }else{
+            bufferedWriter.write("什么啊");
+        }
+        System.out.println(s);
+        bufferedWriter.newLine();
+        bufferedWriter.flush();
+
         //关闭
-        bufferedInputStream.close();
-        bufferedOutputStream.close();
         bufferedWriter.close();
+        bufferedReader.close();
         socket.close();
         serverSocket.close();
     }

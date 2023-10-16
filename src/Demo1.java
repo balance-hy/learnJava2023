@@ -17,13 +17,16 @@ import java.util.*;
 public class Demo1 {
 
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args){
+        String s=null;
+        if(s.equals("\n")){
+            System.out.println(s);
+        }else{
+            System.out.println("哈哈哈");
+        }
 
     }
-    @Test
-    public void transformation() throws IOException {
 
-    }
 }
 
 
