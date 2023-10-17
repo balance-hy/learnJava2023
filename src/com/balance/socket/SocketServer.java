@@ -6,41 +6,26 @@ import java.net.Socket;
 
 public class SocketServer {
     public static void main(String[] args) throws IOException {
+        //在本机的 9999端口监听，等待连接
+        //细节：要求本机无其他服务在监听9999
         ServerSocket serverSocket = new ServerSocket(9999);
-        Socket socket=serverSocket.accept();
+        //如果没有客户端连接时，程序会阻塞在这里
+        Socket socket = serverSocket.accept();
 
-        BufferedInputStream bufferedInputStream = new BufferedInputStream(socket.getInputStream());
-        byte a[]=new byte[1024];
-        int len=0;
-        String path="";
-        while((len=bufferedInputStream.read(a))!=-1){
-            path+=new String(a,0,len);
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        String s;
+        while ((s=bufferedReader.readLine())!=null) {
+            bufferedWriter.write("我是nova");
+            System.out.println(s);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
         }
-        System.out.println("当前想下载 "+path);
 
-        String resFile="";
-        if("最长的电影".equals(path)){
-            resFile="D:\\"+path+".wma";
-        }else{
-            resFile="D:\\晴天.wma";
-        }
-        System.out.println("当前下载的是 "+resFile);
-        BufferedInputStream bufferedInputStream1 = new BufferedInputStream(new FileInputStream(resFile));
-        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(socket.getOutputStream());
-
-        byte b[]=new byte[1024];
-        while((len=bufferedInputStream1.read(b))!=-1){
-            bufferedOutputStream.write(b,0,len);
-        }
-        bufferedOutputStream.flush();
-        socket.shutdownOutput();
-
-
-        bufferedInputStream1.close();
-        bufferedOutputStream.close();
-        bufferedInputStream.close();
+        //关闭
+        bufferedWriter.close();
+        bufferedReader.close();
         socket.close();
         serverSocket.close();
-
     }
 }

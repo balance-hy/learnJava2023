@@ -9,29 +9,23 @@ import java.net.UnknownHostException;
 
 public class SocketClient {
     public static void main(String[] args) throws IOException {
-        Socket socket = new Socket(InetAddress.getLocalHost(),9999);
-        byte a[]="最长的电影".getBytes();
-
-
-        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(socket.getOutputStream());
-        bufferedOutputStream.write(a);
-        bufferedOutputStream.flush();
-        socket.shutdownOutput();
-
-        BufferedInputStream bufferedInputStream = new BufferedInputStream(socket.getInputStream());
-        BufferedOutputStream bufferedOutputStream1 = new BufferedOutputStream(new FileOutputStream("D:\\1.wma"));
-        byte b[]=new byte[1024];
-        int len=0;
-        while((len=bufferedInputStream.read(b))!=-1){
-            bufferedOutputStream1.write(b,0,len);
+        //连接本机的9999端口，若连接成功，返回socket对象
+        Socket socket = new Socket(InetAddress.getLocalHost(), 9999);
+        //连接上后，通过socket.getOutputStream获取到关联的输出流对象
+        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        bufferedWriter.write("name");
+        bufferedWriter.newLine();
+        bufferedWriter.flush();
+        socket.shutdownOutput();//此处应设置输出结束标志
+        //接受回应
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        String s;
+        while((s=bufferedReader.readLine())!=null){
+            System.out.println(s);
         }
-        bufferedOutputStream1.flush();
-
-
-
-        bufferedOutputStream1.close();
-        bufferedInputStream.close();
-        bufferedOutputStream.close();
+        //关闭
+        bufferedReader.close();
+        bufferedWriter.close();
         socket.close();
 
     }
