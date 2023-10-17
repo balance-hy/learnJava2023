@@ -18,9 +18,14 @@ public class udpReceive {
         //输出接收到的数据  datagramPacket.getData()实际接收到的数据 datagramPacket.getLength()实际接收到的数据长度
         System.out.println(new String(datagramPacket.getData(),0,datagramPacket.getLength()));
 
-        //输出数据报
-        byte b[]="ok".getBytes();
-        datagramPacket = new DatagramPacket(b, b.length, InetAddress.getByName("10.20.108.9"), 9998);
+        String s=new String(datagramPacket.getData(),0,datagramPacket.getLength());
+        byte b[];
+        if(s.equals("四大名著是哪些")){
+            b=(s+"红楼梦").getBytes();
+        }else{
+            b=("what?").getBytes();
+        }
+        datagramPacket = new DatagramPacket(b, b.length, InetAddress.getByName("10.20.72.140"), 9998);
         datagramSocket.send(datagramPacket);
 
         //关闭资源

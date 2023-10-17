@@ -7,9 +7,9 @@ public class udpSender {
     public static void main(String[] args) throws IOException {
         //指定接收的端口
         DatagramSocket datagramSocket = new DatagramSocket(9998);
-        byte a[]="hello udp receive".getBytes();//构建发送数组
+        byte a[]="四大名著是哪些".getBytes();//构建发送数组
         //构建数据报
-        DatagramPacket datagramPacket = new DatagramPacket(a,a.length, InetAddress.getByName("10.20.108.9"),9999);
+        DatagramPacket datagramPacket = new DatagramPacket(a,a.length, InetAddress.getByName("10.20.72.140"),9999);
         datagramSocket.send(datagramPacket);//发送数据报
 
         //接收数据报

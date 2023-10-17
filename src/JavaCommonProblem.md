@@ -12,3 +12,150 @@ equals:
 
 ## comparator和comparable
 > https://cloud.tencent.com/developer/article/1918856
+
+
+## socket问题
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310171459621.PNG)  
+while循环出错
+```java
+public class SocketClient {
+    public static void main(String[] args) throws IOException {
+        //连接本机的9999端口，若连接成功，返回socket对象
+        Socket socket = new Socket(InetAddress.getLocalHost(), 9999);
+        //连接上后，通过socket.getOutputStream获取到关联的输出流对象
+        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        bufferedWriter.write("name");
+        bufferedWriter.newLine();
+        bufferedWriter.flush();
+
+        //接受回应
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        String s;
+        while((s=bufferedReader.readLine())!=null){
+            System.out.println(s);
+        }
+        //关闭
+        bufferedReader.close();
+        bufferedWriter.close();
+        socket.close();
+    }
+}
+
+public class SocketServer {
+    public static void main(String[] args) throws IOException {
+        //在本机的 9999端口监听，等待连接
+        //细节：要求本机无其他服务在监听9999
+        ServerSocket serverSocket = new ServerSocket(9999);
+        //如果没有客户端连接时，程序会阻塞在这里
+        Socket socket = serverSocket.accept();
+
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        String s;
+        while ((s=bufferedReader.readLine())!="\n") {
+
+        }
+        if(s.equals("name")){
+            bufferedWriter.write("我是nova");
+        }else if(s.equals("hobby")){
+            bufferedWriter.write("Java");
+        }else{
+            bufferedWriter.write("什么啊");
+        }
+        System.out.println(s);
+        bufferedWriter.newLine();
+        bufferedWriter.flush();
+
+        //关闭
+        bufferedWriter.close();
+        bufferedReader.close();
+        socket.close();
+        serverSocket.close();
+    }
+}
+```
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310171724458.PNG)  
+```java
+public class SocketClient {
+    public static void main(String[] args) throws IOException {
+        Socket socket = new Socket(InetAddress.getLocalHost(),9999);
+        byte a[]="最长的电影".getBytes();
+
+
+        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(socket.getOutputStream());
+        bufferedOutputStream.write(a);
+        bufferedOutputStream.flush();
+        socket.shutdownOutput();
+
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(socket.getInputStream());
+        BufferedOutputStream bufferedOutputStream1 = new BufferedOutputStream(new FileOutputStream("D:\\1.wma"));
+        byte b[]=new byte[1024];
+        int len=0;
+        while((len=bufferedInputStream.read(b))!=-1){
+            bufferedOutputStream1.write(b,0,len);
+        }
+        bufferedOutputStream1.flush();
+
+
+
+        bufferedOutputStream1.close();
+        bufferedInputStream.close();
+        bufferedOutputStream.close();
+        socket.close();
+
+    }
+}
+
+public class SocketServer {
+    public static void main(String[] args) throws IOException {
+        ServerSocket serverSocket = new ServerSocket(9999);
+        Socket socket=serverSocket.accept();
+
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(socket.getInputStream());
+        byte a[]=new byte[1024];
+        int len=0;
+        String path="";
+        while((len=bufferedInputStream.read(a))!=-1){
+            path+=new String(a,0,len);
+        }
+        System.out.println("当前想下载 "+path);
+
+        String resFile="";
+        if("最长的电影".equals(path)){
+            resFile="D:\\"+path+".wma";
+        }else{
+            resFile="D:\\晴天.wma";
+        }
+        System.out.println("当前下载的是 "+resFile);
+        BufferedInputStream bufferedInputStream1 = new BufferedInputStream(new FileInputStream(resFile));
+        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(socket.getOutputStream());
+
+        byte b[]=new byte[1024];
+        while((len=bufferedInputStream1.read(b))!=-1){
+            bufferedOutputStream.write(b,0,len);
+        }
+        bufferedOutputStream.flush();
+        socket.shutdownOutput();
+
+
+        bufferedInputStream1.close();
+        bufferedOutputStream.close();
+        bufferedInputStream.close();
+        socket.close();
+        serverSocket.close();
+
+    }
+}
+```
+## 为什么字符流需要 flush，而字节流不需要
+字节流不需要 flush 操作是因为字节流直接操作的是字节，中途不需要做任何转换，所以直接就可以操作文件。
+这里注意如果使用BufferedInputStream/BufferedOutputStream，它本身就带缓冲区，所以必须显式flush。
+
+而字符流，说到底，其底层还是字节流，但是字符流帮我们将字节转换成了字符，这个转换需要依赖字符表，所以就需要在字符和字节完成转换之后通过 flush 操作刷到磁盘中。
+
+需要注意的是，字节输出流最顶层类 OutputStream 中也提供了 flush 方法，但是它是一个空的方法，如果有子类有需要，也可以实现 flush 方法。  
+
+## BufferedInputStream/BufferedOutputStream包装流关闭引发的异常
+BufferedInputStream/BufferedOutputStream在关闭后，不仅仅可以关闭里面的节点流，还能关闭socket。  
+因此网络编程用到包装流时，buffered相关操作的close()最好放到最后。
+遇到socket is closed问题时可以考虑是这一原因导致的。
