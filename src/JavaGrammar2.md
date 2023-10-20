@@ -438,6 +438,267 @@ public void setMysql() throws IOException {
 Collections是一个操作 Set、List、Map等集合的工具类  
 Collections提供了一系列静态的方法对集合元素进行排序、查询和修改等操作  
 
+## stream流 类似js函数式编程
+Java Stream（流）是 Java 8 引入的一个重要特性，它用于对集合数据进行函数式操作和处理。Stream 提供了一种更便捷、更清晰、更高效的方式来操作集合数据，而不需要显式迭代或编写循环。  
+### 创建
+#### 集合创建流
+```java
+List<String> list = new ArrayList<>();
+list.stream();
 
+Set<String> set = new HashSet<>();
+set.stream();
 
+Map<String,String> map = new HashMap<>();
+map.keySet().stream();
+map.values().stream();
+map.entrySet().stream();
+```
+#### 数组创建流
+```java
+String[] arr = {};
+Arrays.stream(arr);
+```
+#### Stream的静态方法
+Stream.of(T t) 该方法用于创建一个包含指定元素的 Stream，可以传入一个可变数量的参数  
+Stream.of(T... values)  
+Stream.iterate(T seed,UnaryOperator<T> f)：生成一个无限长度的Stream，参数一是初始值，参数二是函数，作用于参数一。一般与limit连用，限制元素个数。  
+Stream.generate(Supplier<T> s)：生成一个无限长度的Stream，一般与limit连用。**常用场景：生成常量流和随机数流。**  
+```java
+Stream.of(1);
+Stream.of(1,2,3);
+Stream.iterate(0,(e->e+1)).limit(5).forEach(e-> System.out.println(e));
+Stream.generate(()->Math.random()).limit(5).forEach(e-> System.out.println(e));
+```
+### 中间使用
+每次返回新的流，可以有多个
+#### 无状态 元素处理不受之前元素影响
+##### filter
+对流中的元素按照给定的函数过滤，生成新的符合过滤条件的流。
+```java
+Integer[] arr = {1,2,3,4,5,6,7,8,9,10};
+Stream.of(arr).filter(e->e>=5).forEach(e-> System.out.println(e));
+```
+```json
+//输出：
+5
+6
+7
+8
+9
+10
+```
+##### map
+对流中的每个元素按照给定的函数进行转换操作，生成新的流只包含转换后的元素。
+```java
+String[] arr = {"apple","banana","orange"};
+Stream.of(arr).map(e ->e.length()).forEach(e->System.out.println(e));
+```
+```json
+//输出：
+5
+6
+6
+```
+##### flatMap
+对流中的每个元素进行扁平化提取，组成新的流。  
+map()与flatMap()对比：map提取流中的引用组成新的流，而flatMap提取流中的元素组成新的流。  
+```java
+String[] arr = {"1-2-3-4","5-6-7"};
+Stream.of(arr).map(e->Stream.of(e.split("-"))).forEach(e-> System.out.println(e));
+Stream.of(arr).flatMap(e->Stream.of(e.split("-"))).forEach(e-> System.out.println(e));
 
+List<List<String>> lists = new ArrayList<>();
+List<String> list1 = Arrays.asList("a","b","c");
+List<String> list2 = Arrays.asList("d","e","f");
+lists.add(list1);
+lists.add(list2);
+lists.stream().flatMap(e->e.stream()).forEach(e-> System.out.println(e));
+```
+```json
+//输出：
+java.util.stream.ReferencePipeline$Head@5680a178
+java.util.stream.ReferencePipeline$Head@5fdef03a
+1
+2
+3
+4
+5
+6
+7
+    
+a
+b
+c
+d
+e
+f
+```
+flatMapToInt()、flatMapToLong()、flatMapToDouble()是flatMap()的是三个变种方法，主要作用是免除自动拆箱装箱的额外消耗。  
+```json
+String[] arr = {"1","2","3","4","5","6"};
+Stream.of(arr).flatMapToDouble(e-> DoubleStream.of(Double.parseDouble(e))).forEach(e-> System.out.println("value："+e+"，type："+ToolUtil.getType(e)));
+
+//输出：
+value：1.0，type：class java.lang.Double
+value：2.0，type：class java.lang.Double
+value：3.0，type：class java.lang.Double
+value：4.0，type：class java.lang.Double
+value：5.0，type：class java.lang.Double
+value：6.0，type：class java.lang.Double
+```
+##### peek
+将流中的元素进行处理，不改变流中的元素。  
+peek()与map()的区别：map操作可以改变流中的元素，有返回值；peek操作仅仅在操作中消费元素，没有返回值，传入下一个操作的元素不会改变  
+```java
+String[] arr = {"1","2","3","4","5","6"};
+Stream.of(arr).map(e-> {
+    e = e + "a";
+    System.out.println("map:"+e);
+    return e;
+}).forEach(e-> System.out.println("map-foreach:"+e));
+
+Stream.of(arr).peek(e-> {
+    e = e + "a";
+    System.out.println("peek:"+e);
+}).forEach(e-> System.out.println("peek-foreach:"+e));
+```
+```json
+//输出：
+map:1a
+map-foreach:1a
+map:2a
+map-foreach:2a
+map:3a
+map-foreach:3a
+map:4a
+map-foreach:4a
+map:5a
+map-foreach:5a
+map:6a
+map-foreach:6a
+peek:1a
+peek-foreach:1
+peek:2a
+peek-foreach:2
+peek:3a
+peek-foreach:3
+peek:4a
+peek-foreach:4
+peek:5a
+peek-foreach:5
+peek:6a
+peek-foreach:6
+```
+##### unordered
+基于调用流，返回一个无序流。  
+在有序流的并行执行情况下，保持 的顺序性是需要高昂的缓冲开销。所以在处理元素时，不需要保证元素的顺序性，那么我们可以使用 unordered() 方法来实现无序流。
+#### 有状态 必须拿到所有元素才能继续下去
+##### distinct 去重
+将流中的元素去重。如果是自定义类，一定要重写equals()方法与hashCode()方法。
+##### sorted 排序
+默认按自然升序对集合进行排序，可使用Comparator提供 reverseOrder() 方法实现降序排列。
+```java
+String[] arr = {"7","2","0","4","2","6"};
+Stream.of(arr).sorted().forEach(e-> System.out.print(e+"->"));
+System.out.println();
+Stream.of(arr).sorted(Comparator.reverseOrder()).forEach(e-> System.out.print(e+"->"));
+System.out.println();
+Stream.of(arr).sorted(new Comparator<String>() {
+    @Override
+    public int compare(String o1, String o2) {
+        return o2.compareTo(o1);
+    }
+}).forEach(e-> System.out.print(e+"->"));
+```
+```json
+//输出：
+0->2->2->4->6->7->
+7->6->4->2->2->0->
+7->6->4->2->2->0->
+```
+##### limit
+截取前n个元素，返回新的stream流。
+##### skip
+跳过前面n个元素，返回新的stream流。
+### 终止
+每个流只能进行一次终止操作，终止操作结束后流无法再使用。终止操作会产生新的集合或者值。  
+#### 非短路操作（必须处理完所有操作才能得到结果)
+##### forEach 不一定按序
+遍历。在并行操作中，这种方法不能保证按顺序执行。
+##### forEachOrdered 按序
+遍历。保证了在顺序流和并行流中都按顺序执行。
+##### toArray
+将流转为数组。
+##### reduce
+是一个规约操作，所有的元素归约成一个结果值。三种调用方法，如下：  
+1. `Optional<T> reduce(BinaryOperator<T> accumulator)`：一个参数，这个参数的名称accumulator（累加器），它的类型是一个函数式接口，这个接口是继承了BiFunction<T,U,R>，实现这个接口有两个输入，一个T类型，一个U类型，返回值是R类型  
+2. `T reduce(T identity, BinaryOperator<T> accumulator)`：两个参数。第一个参数是初始值（限制必须是流元素类型），第二个参数跟方法一中参数一致。  
+3. `<U> U reduce(U identity, BiFunction<U,? super T,U> accumulator, BinaryOperator<U> combiner)`：三个参数。前两个参数是对方法二的改进，此方法可以自定义初始值和返回值的类型。第三个参数用来合并并行流，也就是说只有使用了并行流，第三个参数才有意义。  
+```java
+String[] arr = {"1","2","3","4","5","6"};
+Optional<String> result1 = Stream.of(arr).reduce((e1, e2)->e1+e2);
+String result2 = Stream.of(arr).reduce("",(e1,e2)->e1+e2);
+Integer result3 = Stream.of(arr).reduce(0,(e1,e2)->Integer.valueOf(e1)+Integer.valueOf(e2),(arr1,arr2)->Integer.valueOf(arr1)+Integer.valueOf(arr2));
+
+System.out.println(result1);
+System.out.println(result2);
+System.out.println(result3);
+```
+```json
+//输出：
+Optional[123456]
+123456
+21
+```
+##### collect
+
+##### max
+取最大值  
+```java
+String[] arr = {"apple","banana","waltermaleon"};
+System.out.println(Stream.of(arr).max((e1,e2)-> {
+            return e1.length() - e2.length();
+        }).get());
+
+//输出：
+//waltermaleon
+```
+##### min
+取最小值  
+```java
+String[] arr = {"apple","banana","waltermaleon"};
+System.out.println(Stream.of(arr).min((e1,e2)-> {
+            return e1.length() - e2.length();
+        }).get());
+
+//输出：
+//apple
+```
+##### count 取个数
+取流中元素的个数  
+```java
+String[] arr = {"7","2","0","4","2","6"};
+System.out.println(Stream.of(arr).count());
+//输出：
+//6
+```
+#### 短路操作（遇到符合条件的元素就可以得到最终结果）
+##### anyMatch
+任意匹配。对流中的元素进行判断，有任意一个匹配，则返回ture。否则返回false。  
+allMatch()：完全匹配。对流中所有的元素进行判断，如果都满足返回true，否则返回false。  
+noneMatch()：不匹配。判断数据流中没有一个元素与条件匹配的，返回true，否则返回false。  
+```java
+String[] arr = {"banana","peach","apple","orange", "waltermaleon", "grape"};
+System.out.println(Stream.of(arr).anyMatch(e->e.equals("apple"));
+```
+##### findFirst
+获取流中的第一个元素  
+findAny()：获取流中任意一个元素，搭配parallel使用，才会生效。  
+```java
+String[] arr = {"banana","peach","apple","orange", "waltermaleon", "grape"};
+Stream.of(arr).filter(e->e.length() == 5).parallel().findFirst().ifPresent(e-> System.out.println(e));
+
+//输出：
+//peach
+```

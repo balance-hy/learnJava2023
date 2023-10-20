@@ -27,47 +27,32 @@ public class Demo1 {
         }
         System.out.println(new String(b));
     }
-    public List<Integer> findAnagrams(String s, String p) {
-        HashSet<String> set = new HashSet<>();
-        ArrayList<Integer> list = new ArrayList<>();
-        int a[]=new int[26];
-        int lengthP=p.length();
-        int lengthS=s.length();
-        for(int i=0;i<lengthP;i++){
-            a[p.charAt(i)-'a']++;
-        }
-        StringBuilder builder = new StringBuilder();
-        for(int i=0;i<26;i++){
-            if(a[i]!=0){
-                builder.append((char)('a'+i));
-                builder.append(a[i]);
-            }
-        }
-        String key=builder.toString();
-        set.add(key);//拼接的字符串作为键
+    public int[] intersection(int[] nums1, int[] nums2) {
+        int nums1Len=nums1.length;
+        int nums2Len=nums2.length;
 
-        for(int i=0;i<lengthS;){
-            if(i+lengthP-1>=lengthS){
-                break;
-            }
-            int b[]=new int[26];
-            for(int j=0;j<lengthP;j++){
-                b[s.charAt(i+j)-'a']++;
-            }
-            StringBuilder stringBuilder = new StringBuilder();
-            for(int k=0;k<26;k++){//每次拼接
-                if(b[k]!=0){
-                    stringBuilder.append((char)('a'+k));
-                    stringBuilder.append(b[k]);
-                }
-            }
-            String key1=stringBuilder.toString();
-            if(set.contains(key1)){//查是否含有
-                list.add(i);
-            }
-            i++;
+        HashSet<Integer> set = new HashSet<>();
+        HashSet<Integer> reSet = new HashSet<>();
+
+        for (int i:nums1) {
+            set.add(i);
         }
-        return list;
+        for(int i:nums2){
+            if(set.contains(i)){
+                reSet.add(i);
+            }
+        }
+        //方法1：将结果集合转为数组
+        return reSet.stream().mapToInt(x->x).toArray();
+
+        //方法2：另外申请一个数组存放setRes中的元素,最后返回数组
+//        int[] arr = new int[reSet.size()];
+//        int j = 0;
+//        for(int i : reSet){
+//            arr[j++] = i;
+//        }
+//
+//        return arr;
     }
 
 }
