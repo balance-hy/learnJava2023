@@ -250,5 +250,8 @@ public class SocketServer {
 （2）对于读取文件流，当读到文件的结尾时，就是到了流的结尾  
 （3）但对于socket，不能认为把某次写入到流中的数据读取完了就算流结尾了，但是socket流还存在，还可以继续往里面写入数据然后再读取。所以用BufferedReader封装socket的输入流，调用BufferedReader的readLine方法是不会返回null的  
 
-## ？
+## invalid stream header: 7371007E。
+> https://blog.csdn.net/weixin_44142151/article/details/124188691
+
+ObjectOutputStream/ObjectInputStream header问题
 

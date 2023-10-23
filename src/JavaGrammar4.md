@@ -283,3 +283,52 @@ public class udpSender {
     }
 }
 ```
+## 反射
+### 反射引出 
+如何根据配置文件指定信息，创建对象并调用方法  
+比如有一个文件re.properties:  
+```java
+classfullpath=com.balance.Cat
+method=hi
+```
+解决:  
+```java
+Cat cat=new Cat();//传统方式
+cat.hi();
+
+//使用Properties读，可不可以
+Properties properties = new Properties();
+properties.load(new FileInputStream("src\\mysql.properties"));
+String classfullpath = properties.get("classfullpath").toString();
+String methodName = properties.get("method").toString();
+//结果是不可以，因为无法new classfullpath()，classfullpath是字符串而非类名
+
+//使用反射机制解决
+//加载类，返回Class类型的对象
+Class<?> aClass = Class.forName(classfullpath);
+//通过 aClass.newInstance 获得你加载的类的对象实例
+Object o = aClass.newInstance();
+//通过 aClass.getMethod 获得你加载的类的 methodName的方法对象
+// 即：在反射中，可以把方法视作对象
+Method method = aClass.getMethod(methodName);
+//通过method调用方法 ：即通过方法对象来实现调用方法
+method.invoke(o);//传统 对象名.方法(),反射 方法.invoke(对象)
+```
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310231438493.PNG)  
+### 反射相关类
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310231500878.PNG)  
+```java
+//注意 getField 无法访问到私有属性
+Field nameField = aClass.getField("name");
+System.out.println(nameField.get(o));//传统写法 对象.属性 反射 属性.get(对象)
+
+//默认得到无参构造
+Constructor<?> constructor = aClass.getConstructor();
+//通过指定参数的反射class，获得有参构造
+Constructor<?> constructor1 = aClass.getConstructor(String.class);
+```
+### 反射的优缺点
+优点：  
+可以动态的创建和使用对象（也是框架底层核心），使用灵活，没有反射机制，框架技术就失去底层支撑。  
+缺点：  
+使用反射基本是解释执行，对执行速度有影响。  
