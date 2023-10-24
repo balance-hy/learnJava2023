@@ -332,3 +332,53 @@ Constructor<?> constructor1 = aClass.getConstructor(String.class);
 可以动态的创建和使用对象（也是框架底层核心），使用灵活，没有反射机制，框架技术就失去底层支撑。  
 缺点：  
 使用反射基本是解释执行，对执行速度有影响。  
+
+### class类
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241333470.PNG)  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241333958.PNG)  
+
+#### 常用方法
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241346891.PNG)  
+
+#### 获取class类对象的六种方式
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241412999.PNG)  
+```java
+Properties properties = new Properties();
+properties.load(new FileInputStream("src\\mysql.properties"));
+String classfullpath = properties.get("classfullpath").toString();
+String methodName = properties.get("method").toString();
+
+//1.Class.forName
+Class<?> aClass = Class.forName(classfullpath);
+
+//2.类名.class，应用场景：多用于参数传递
+Class<udpReceive> udpReceiveClass = udpReceive.class;
+
+//3.对象.getClass 应用场景：有对象实例
+udpReceive udpReceive = new udpReceive();
+Class<? extends com.balance.udp.udpReceive> aClass1 = udpReceive.getClass();
+
+//4.通过类加载器来获取类的class对象
+//（1）先得到类加载器
+ClassLoader classLoader = udpReceive.getClass().getClassLoader();
+//（2）通过类加载器得到class对象
+Class<?> aClass2 = classLoader.loadClass(classfullpath);
+
+//5.基本数据类型 直接 类型.class
+Class<Integer> integerClass = int.class;
+
+//6.基本类型对应的包装类 包装类.TYPE 实际上type和integerClass hashcode相同因为自动拆装箱
+Class<Integer> type = Integer.TYPE;
+```
+#### 类加载
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241432675.PNG)  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241436742.PNG)  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241439268.PNG)  
+##### 类加载各阶段
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241459231.PNG)  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241500062.PNG)  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241504479.PNG)  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241507190.PNG)  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241509373.PNG)  
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241524345.PNG)  
+

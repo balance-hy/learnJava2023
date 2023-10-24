@@ -101,6 +101,7 @@ List<Object> list=new ArrayList<String>();//String是Object子类,但会报错
 1. <?>:支持任意泛型类型
 2. <? extends A>:支持A类以及A类的子类
 3. <? super A>:支持A类和A类的父类，不限于直接父类
+
 ### Junit
 在方法上加`@Test`注解，引入依赖后，左侧边栏会出现三角执行按钮，就可以单独执行来测试了。
 

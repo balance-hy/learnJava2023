@@ -1,3 +1,4 @@
+import com.balance.udp.udpReceive;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
@@ -27,24 +28,28 @@ public class Demo1 {
         String classfullpath = properties.get("classfullpath").toString();
         String methodName = properties.get("method").toString();
 
-        //加载类，返回Class类型的对象
+        //1.Class.forName
         Class<?> aClass = Class.forName(classfullpath);
-        //通过 aClass.newInstance 获得你加载的类的对象实例
-        Object o = aClass.newInstance();
-        //通过 aClass.getMethod 获得你加载的类的 methodName的方法对象
-        // 即：在反射中，可以把方法视作对象
-        Method method = aClass.getMethod(methodName);
-        //通过method调用方法 ：即通过方法对象来实现调用方法
-        method.invoke(o);//传统 对象名.方法(),反射 方法.invoke(对象)
 
-        //注意 getField 无法访问到私有属性
-        Field nameField = aClass.getField("name");
-        System.out.println(nameField.get(o));//传统写法 对象.属性 反射 属性.get(对象)
+        //2.类名.class，应用场景：多用于参数传递
+        Class<udpReceive> udpReceiveClass = udpReceive.class;
 
-        //默认得到无参构造
-        Constructor<?> constructor = aClass.getConstructor();
-        //通过指定参数的反射class，获得有参构造
-        Constructor<?> constructor1 = aClass.getConstructor(String.class);
+        //3.对象.getClass 应用场景：有对象实例
+        udpReceive udpReceive = new udpReceive();
+        Class<? extends com.balance.udp.udpReceive> aClass1 = udpReceive.getClass();
+
+        //4.通过类加载器来获取类的class对象
+        //（1）先得到类加载器
+        ClassLoader classLoader = udpReceive.getClass().getClassLoader();
+        //（2）通过类加载器得到class对象
+        Class<?> aClass2 = classLoader.loadClass(classfullpath);
+
+        //5.基本数据类型 直接 类型.class
+        Class<Integer> integerClass = int.class;
+
+        //6.基本类型对应的包装类 包装类.TYPE 实际上type和integerClass hashcode相同因为自动拆装箱
+        Class<Integer> type = Integer.TYPE;
+
     }
 }
 
