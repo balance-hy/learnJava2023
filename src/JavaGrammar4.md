@@ -381,4 +381,133 @@ Class<Integer> type = Integer.TYPE;
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241507190.PNG)  
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241509373.PNG)  
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310241524345.PNG)  
+#### 通过反射获取类结构信息
+##### class
+注意getConstructors无父类构造器，图片有误
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310251419200.PNG)  
+##### Field
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310251437070.PNG)
+##### methods
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310251438728.PNG)  
+##### constructor
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310251443814.PNG)  
+#### 反射爆破创建实例
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310251509709.PNG)  
+```java
+public class Demo1 {
+    public static void main(String[] args) throws Exception {
+        //先获取到User类的Class对象
+        Class<User> userClass = User.class;
+        //通过public无参构造器创造实例
+        User user = userClass.newInstance();
+        //通过public有参构造器创造实例
+        Constructor<User> constructor = userClass.getConstructor(String.class);
+        User balance1 = constructor.newInstance("balance1");
+        //非public有参构造器创造实例
+        //先获取到私有构造器
+        Constructor<User> declaredConstructor = userClass.getDeclaredConstructor(String.class, int.class);
+        //此时还是无法直接newInstance创建，需setAccessible设置为true 爆破
+        declaredConstructor.setAccessible(true);
+        User balance2 = declaredConstructor.newInstance("balance2", 15);
+    }
+}
+class User{
+    private String name="balance";
+    private int age=10;
+
+    public User(){
+
+    }
+    public User(String name){
+        this.name=name;
+    }
+    private User(String name,int age){
+        this.name=name;
+        this.age=age;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                '}';
+    }
+}
+```
+#### 反射爆破操作属性
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310251512518.PNG)  
+```java
+public class Demo1 {
+    public static void main(String[] args) throws Exception {
+        //获取Student Class对象
+        Class<Student> studentClass = Student.class;
+        Student student = studentClass.newInstance();
+        System.out.println(student);
+        //通过反射获得age属性对象
+        Field age = studentClass.getField("age");
+        //设置值
+        age.set(student,88);
+        System.out.println(student);
+        System.out.println(age.get(student));//反射返回age值
+        //通过反射操作name属性
+        Field name = studentClass.getDeclaredField("name");//因为私有所以getDeclaredField
+        //因为私有属性，无法直接设置，所以setAccessible(true) 爆破
+        name.setAccessible(true);
+        name.set(student,"balance");
+        //因为name是static 也可name.set(null,"balance");
+        System.out.println(student);
+        System.out.println(name.get(student));//因为是static 也可name.get(null)
+
+
+    }
+}
+class Student{
+    public int age;
+    private  static  String name;
+
+    public Student() {
+    }
+    @Override
+    public String toString() {
+        return "Student{" +
+                "age=" + age+" " +"name="+name+
+                '}';
+    }
+}
+```
+#### 反射爆破操作方法
+![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310251525672.PNG)  
+```java
+public class Demo1 {
+    public static void main(String[] args) throws Exception {
+        //获取BOSS Class对象
+        Class<Boss> bossClass = Boss.class;
+        Boss boss = bossClass.newInstance();
+        //调用public hi方法 直接getMethod就行
+        Method hi = bossClass.getMethod("hi", String.class);
+        hi.invoke(boss, "balance");
+        //调用私用 say方法 getDeclaredMethod获取
+        Method say = bossClass.getDeclaredMethod("say", int.class, String.class, char.class);
+        //注意say方法无法直接调用，所以setAccessible(true) 爆破
+        say.setAccessible(true);
+        //因为是静态 所以直接可以传null 不是静态需传具体对象
+        say.invoke(null,18,"balance",'c');
+        //在反射中，如果方法有返回值，一律返回object
+    }
+}
+class Boss{
+    public int age;
+    private static String name;
+    public Boss(){}
+
+    private static void say(int n,String s,char c){
+        System.out.println(n+" "+s+" "+c);
+    }
+    public void hi(String s){
+        System.out.println("hi "+s);
+    }
+}
+```
+
 
