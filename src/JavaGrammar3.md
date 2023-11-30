@@ -98,9 +98,9 @@ public void eat<E,e>{
 ```java
 List<Object> list=new ArrayList<String>();//String是Object子类,但会报错
 ```
-1. <?>:支持任意泛型类型
-2. <? extends A>:支持A类以及A类的子类
-3. <? super A>:支持A类和A类的父类，不限于直接父类
+1. `<?>:支持任意泛型类型`
+2. `<? extends A>:支持A类以及A类的子类`
+3. `<? super A>:支持A类和A类的父类，不限于直接父类`
 
 ### Junit
 在方法上加`@Test`注解，引入依赖后，左侧边栏会出现三角执行按钮，就可以单独执行来测试了。
@@ -314,6 +314,7 @@ if(file1.exists()){
 |:------------------:|:------------:|:------:|
 |      **输入流**       | InputStream  | Reader |
 |      **输出流**       | OutputStream | Writer |
+
 Java IO流涉及40多个类，但都是从如上四个基类派生的  
 由这四个类派生的子类命名都是以其父类名作为子类的后缀  
 #### 字节流 二进制文件专用

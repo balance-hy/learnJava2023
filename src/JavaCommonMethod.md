@@ -50,15 +50,15 @@ hashcode();//返回对象的哈希值
 |     getBytes     |       字符串转Byte数组        |
 
 ## String Buffer
-|     方法      |                 作用                  |
-|:-----------:|:-----------------------------------:|
-|   append    |             向字符串末尾增加字符              |
-|   delete    |     (start,end)删除[start,end)的字符     |
-|   replace   |  (start,end,"xxx")替换[start,end)字符   |
-|   IndexOf   |       子串在字符串中第一次出现位置，找不到返回-1        |  
-|   insert    |               指定位置插入                |  
-|   length    |              **获取长度**               |  
-
+|      方法       |                  作用                   |
+|:-------------:|:-------------------------------------:|
+|    append     |              向字符串末尾增加字符               |
+|    delete     |      (start,end)删除[start,end)的字符      |
+|    replace    |   (start,end,"xxx")替换[start,end)字符    |
+|    IndexOf    |        子串在字符串中第一次出现位置，找不到返回-1         |  
+|    insert     |                指定位置插入                 |  
+|    length     |               **获取长度**                |  
+|   setCharAt   |             指定索引处的字符设置为ch             |  
 ## Math
 |   方法   |    作用    |
 |:------:|:--------:|

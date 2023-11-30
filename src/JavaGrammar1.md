@@ -2,24 +2,24 @@
 ## 基本类型
 整数 二进制0b 八进制0 十六进制0x
 ```java
-byte num1=10;  
-short num2=10;  
-int num3=10;  
-long num4=10L;//long类型要加L  
+byte num1=2;// 8位，有符号 1个字节 1 2 4 8 16 32 64 1/0
+short num2=4;// 16位，2个字节 1 2 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384 32768
+int num3=15;//32位，4字节
+long num4=150L;//64位，8字节，L理论上不区分大小写，为防止l和1弄混，所以大写  
 ```  
 浮点数 少用浮点数进行比较，实在要用->BigDecimal类 
 ```java
-float num5=10.3F;//float要加F
-double num6=10.34577;
+float num5=15.0F;//32位，4字节，f 理论上不区分大小写，为和L统一，一并大写为好
+double num6=15.00;//64位，8字节，可写可不写D/d，d 理论上不区分大小写，若要写，大写为好
 ```  
 字符
 ```java
-char name='A';//占2字节，c占一字节
-String name1="hello";
+char name='A';//除了可以表示标准的ASCIll，还表示一个16位的Unicode字符，2字节
+String name2="hello";
 ```
 布尔
 ```java
-boolean flag=true;
+boolean flag=true;//boolean类型经过编译之后采用int来定义(所以此时boolean占4字节，32bits) 但如果是boolean数组则占1字节(8 bits)
 ```
 > **查看类方法，ctrl+点击**  
 
@@ -79,7 +79,7 @@ public class Demo1 {
  * @return 返回值
  * @throws 抛出异常情况
  */
-选定方法，alt+enter再选择add java doc就可以快速添加属性注释
+选定方法名，alt+enter再选择add java doc就可以快速添加属性注释
 ```
 ## Scanner
 ```java

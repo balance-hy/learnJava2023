@@ -150,9 +150,9 @@ Calendar是抽象类，无法通过new来实例化，可以用它的getInstance�
 Calendar instance = Calendar.getInstance();
 instance.get(Calendar.YEAR);//取年份，其他类似
 System.out.println(instance.get(Calendar.YEAR)
-        +"年"+instance.get(Calendar.MONTH)
-        +"月"+instance.get(5)+"日" 
-        +instance.get(Calendar.HOUR)+":"
+        +"年"+(instance.get(Calendar.MONTH)+1)  //月份从0开始所以要+1
+        +"月"+instance.get(Calendar.DAY_OF_MONTH)+"日" 
+        +instance.get(Calendar.HOUR_OF_DAY)+":"
         +instance.get(Calendar.MINUTE)+":"
         +instance.get(Calendar.SECOND));
 //上面默认是12小时制，若要改为24小时制，将Calendar.HOUR改为Calendar.HOUR_OF_DAY即可
@@ -162,7 +162,7 @@ instance.get(Calendar.HOUR_OF_DAY);
 ```
 ### 第三代日期
 前面两代日期都存在问题，比如Calendar是可变的,但日期和时间应为不可变  
-又比如Date中年份从1900开始，月份从0开始，Calendar也没有格式化的工具  
+又比如Date中年份从1900开始，Calendar月份从0开始，Calendar也没有格式化的工具  
 而且它们都不是线程安全的，也无法处理闰秒问题（每两天多出一秒）  
 #### LocalDate
 包含年月日

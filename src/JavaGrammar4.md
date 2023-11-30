@@ -159,8 +159,10 @@ public class SocketClient {
         //连接上后，通过socket.getOutputStream获取到关联的输出流对象
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         bufferedWriter.write("hello server");
-        bufferedWriter.newLine();//设置结束标记，readLine读到此结束
+        bufferedWriter.newLine();//设置结束标记，readLine读到换行符结束
         bufferedWriter.flush();//刷新，否则无法写入
+        // BufferedWriter 会在缓冲区填满或者手动调用 flush() 方法时，将缓冲区的内容刷新到底层的输出流中。
+        // 如果不调用 flush()，缓冲区的内容可能不会即时写入输出流，导致数据传输不完整，从而影响程序的运行
 
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         String s = bufferedReader.readLine();
@@ -196,7 +198,11 @@ public class SocketServer {
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         bufferedWriter.write("收到图片");
         bufferedWriter.newLine();//设置结束标记，因为readLine读到此结束
+        //按照源码bufferedWriter.close()时会自动刷新缓冲区，为什么还要显式flush()呢？
+        //因为如果不显式flush()，当bufferedInputStream关闭时，就会关闭内层流，这会导致socket关闭
+        //，bufferedWriter.close()再调用flush，就会导致错误的发生
         bufferedWriter.flush();//记得刷新，否则写入失败
+
         //关闭
         bufferedInputStream.close();
         bufferedOutputStream.close();
@@ -219,6 +225,9 @@ public class SocketClient {
             bufferedOutputStream.write(a,0,readLen);
         }
         //注意在这里需要先flush，否则会报Cannot send after socket shutdown错误
+        //因为bufferedOutputStream.close()的逻辑是，如果此时缓冲区还有数据
+        //还会调用一次flush，如果之前不flush，socket.shutdownOutput();之后就无法写入
+        //从而抛出Cannot send after socket shutdown错误
         bufferedOutputStream.flush();
         socket.shutdownOutput();
 
@@ -231,6 +240,7 @@ public class SocketClient {
         bufferedOutputStream.close();
         bufferedReader.close();
         socket.close();
+
     }
 }
 ```
