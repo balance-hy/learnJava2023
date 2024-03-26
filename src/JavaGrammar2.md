@@ -8,14 +8,14 @@ enum-modifiers enum enumname:enum-base {
 }
 //修饰符 enum 名字:类型{
 //}
-```  
+```
 提示：如果没有显式地声明基础类型的枚举，那么意味着它所对应的基础类型是int。  
 ```java
 enum SexEnum {
     male,female;
 }
 //调用
-```  
+```
 之后便可以通过枚举类型名直接引用常量，如 SexEnum.male、SexEnum.female。  
 ### 枚举类
 Java 中的每一个枚举都继承自 java.lang.Enum 类。当定义一个枚举类型时，每一个枚举类型成员都可以看作是 Enum 类的实例，这些枚举成员默认都被final、public、static 修饰，当使用枚举类型成员时，直接使用枚举名称调用成员即可。  
@@ -85,7 +85,7 @@ String s2="12345";
 Integer i1 = Integer.parseInt(s2);
 //方式二
 Integer i2 = new Integer(s2);
-```  
+```
 ## StringBuffer
 java.lang.StringBuffer代表**可变的字符序列**，可以对字符串内容进行增删。  
 很多方法和String相同，但StringBuffer是可变长度的(继承了AbstractStringBuilder,该类有属性
@@ -219,7 +219,7 @@ Iterator对象称为迭代器，主要用于遍历Collection集合中的元素
 Iterator仅用于遍历集合，Iterrator本身并不存放对象
 Iterator结构如下所示  
 ![Iterator](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309111511575.PNG)  
-  
+
 hasNext用于检测是否还有下一个元素,next用于取出，每次调用next必须使用hasNext检测
 ```java
 ctrl+j 快捷键提示
@@ -250,6 +250,9 @@ ArrayList基本等同于Vector，除了ArrayList是线程不安全的（执行�
 #### Vector（ArrayList安全版）
 ArrayList底层也是由数组来实现数据存储的  
 Vector是线程同步即线程安全的,效率较低，在开发中，若需要线程同步安全时，考虑使用Vector  
+
+JUC中也有一个ArrayList的安全实现，copyonwriteArrayList
+
 1. 无参构造，默认10，满后，2倍扩容
 2. 有参构造，每次两倍扩容  
 但其实应该可以指定扩容大小，源码中有设置

@@ -150,6 +150,7 @@ class Cat extends Thread{
 ##### 实现Runnable接口
 方式二：实现Runnable接口，重写run方法  
 为什么需要这种方法？因为：
+
 1. java是单继承的，在某些情况下一个类可能已经继承了某个父类，这时就无法再继承Thread类了
 2. 此时可以通过实现Runnable接口来创建线程  
 
@@ -182,21 +183,38 @@ class Dog implements Runnable{
     }
 }
 ```
+##### 实现callable接口
+
+![image-20240326133728852](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240326133728852.png) 
+
 ![区别](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309241647375.PNG)
 这里不是说就不可以通过继承Thread来操作同一资源了，比如：
 ![threadMore](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309241654164.PNG)
 这就是一个类多次实例化创建不同线程操作同一资源的例子  
-#### 线程终止
+
+#### 线程状态
+
+线程停止：
+
 1. 当线程完成任务后，会自动退出
 2. 还可以通过使用变量来控制run方法终止的方式结束线程
 
-简单来说之前是while循环，在主线程设置flag为false，让while循环结束就可以控制子线程退出  
+简单来说之前是while循环，在主线程设置flag为false，让while循环结束就可以控制子线程退出  ，不建议使用stop 和 destroy 等方法去停止
 ##### yield
 线程的礼让，让出cpu，让其他线程执行，但礼让的时间不确定，所以不一定礼让成功。但其实取决于cpu，如果资源够多
 就不会出现让步的效果，因为此时同时执行也是可以的。
 
 ##### join
 线程插队。插队的线程一旦插队成功，则肯定先执行完插入的线程所有的任务。
+
+| 线程相关方法 | 说明                                          |
+| ------------ | --------------------------------------------- |
+| setPriority  | 更改线程优先级 1-10 优先级设置建议在 start 前 |
+| sleep        | 休眠                                          |
+| join         | 插队                                          |
+| yield        | 让步                                          |
+| interrupt    | 中断线程 不推荐使用                           |
+| isAlive      | 测试线程是否处于活动状态                      |
 
 #### 用户线程、守护线程
 **用户线程也叫工作线程**，线程的任务执行完或通知方式来结束  
@@ -216,40 +234,67 @@ public static void main(String[] args) throws InterruptedException {
 #### 线程状态
 ![threadState](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202309261426513.PNG)
 线程状态。 线程可以处于以下状态之一：
+
 * NEW
-* 尚未启动的线程处于此状态。
+
+  尚未启动的线程处于此状态。
+
 * RUNNABLE
-* 在Java虚拟机中执行的线程处于此状态。
+
+  在Java虚拟机中执行的线程处于此状态。
+
 * BLOCKED
-* 被阻塞等待监视器锁定的线程处于此状态。
+
+  被阻塞等待监视器锁定的线程处于此状态。
+
 * WAITING
-* 正在等待另一个线程执行特定动作的线程处于此状态。
+
+  正在等待另一个线程执行特定动作的线程处于此状态。
+
 * TIMED_WAITING
-* 正在等待另一个线程执行动作达到指定等待时间的线程处于此状态。
+
+  正在等待另一个线程执行动作达到指定等待时间的线程处于此状态。
+
 * TERMINATED
-* 已退出的线程处于此状态。
-* 一个线程可以在给定时间点处于一个状态。 这些状态是不反映任何操作系统线程状态的虚拟机状态。  
+
+  已退出的线程处于此状态。
+
+  一个线程可以在给定时间点处于一个状态。 这些状态是不反映任何操作系统线程状态的虚拟机状态。  
+
+`thread.getState()`获得线程状态
+
+![image-20240326143423384](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240326143423384.png)
 
 #### 线程同步
-在多线程编程时，一些敏感数据不允许被多个线程同时访问，此时就使用同步访问技术
+在多线程编程时，一些敏感数据不允许被多个线程同时访问（并发），此时就使用同步访问技术
 保证数据在同一时刻，最多有一个线程访问，以保证数据完整性。  
-具体方法-**Synchronized**  
+
+具体方法-**Synchronized** 
 1.同步代码块，推荐，范围小，效率相对高
+
 ```java
-synchronized (){//得到对象的锁，才能操作代码
+synchronized (){//得到对象的锁，才能操作代码 每个对象都拥有自己的锁
     //需要被同步代码
 }
 ```
 2.方法声明中，表示整个方法为同步方法  
+
 ```java
 public synchronized void m(String name){
     //需要被同步代码
 }
 ```
+- 对于普通同步方法，锁是当前实例对象。 如果有多个实例 那么锁对象必然不同无法实现同步。
+- 对于静态同步方法，锁是当前类的Class对象。有多个实例 但是锁对象是相同的  可以完成同步。
+- 对于同步方法块，锁是Synchonized括号里配置的对象。对象最好是只有一个的 如当前类的 class 是只有一个的  锁对象相同 也能实现同步。
+
 ### 锁
+
+![image-20240326152325614](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240326152325614.png)
+
 #### 互斥锁
 1. java语言中，引入了对象互斥锁的概念，来保证共享数据操作的完整性
-2. 每个对象都对应于一个可称为“互斥锁”的标记，这个标记用来保证在任何时刻只有一个线程访问该对象
+2. **每个对象都对应于一个可称为“互斥锁”的标记**，这个标记用来保证在任何时刻只有一个线程访问该对象
 3. 关键字synchronized来与对象的互斥锁联系。当某个对象用synchronized修饰时，表明该对象在任一时刻只能由一个线程访问
 4. 同步局限性：会导致程序的执行效率变低
 5. 同步方法（非静态）的锁可以是this，可以是其他对象。（**都需保证为同一对象**）
@@ -260,7 +305,211 @@ synchronized (this/其他对象){
 }
 ```
 
+#### 死锁
+
+多个线程各自占有一些共享资源，并且等待其它线程占有的资源才能运行，导致两个或以上线程都在等待对方释放资源，都停止运行的情形称为死锁。
+
+> 面试官：你给我说说死锁，我就让你通过面试
+>
+> 求职者：你让我通过面试，我就给你说说死锁
+
+产生死锁的必要条件
+
+- **互斥条件**: 一个资源每次只能被一个进程使用。
+- **请求与保持条件**: 一个进程因请求资源而阻塞时，对已获得的资源保持不放。
+- **不剥夺条件**: 进程已获得的资源，在末使用完之前，不能强行剥夺。
+- **循环等待条件**: 若干进程之间形成一种头尾相接的循环等待资源关系。
+
+上面列出了死锁的四个必要条件，我们只要想办法破其中的任意一个或多个条件就可以避免死锁发生
+
+#### Lock
+
+`java.util.concurrent.locks.Lock` 是一个接口
+`ReentrantLock` 类实现了`Lock`是一个可重入锁
+
+![image-20240326160655582](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240326160655582.png)
+
+![image-20240326160722950](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240326160722950.png)
+
+### 线程协作
+
+生产者和消费者问题：
+
+- 假设仓库里只能存放一件商品，生产者将生产出来的产品放入仓库，消费者将仓库中产品取走消费
+- 如果仓库中没有产品，则生产者将产品放入仓库，否则停止生产并等待，直到仓库中的产品被消费者取走为止
+- 如果仓库中有产品，则消费者可以将产品拿走消费，否则停止消费并等待，直到仓库中再次放入产品为止
+
+在解决这样一个问题当中，仅有synchronized是不够的
+
+* synchronized 可阻止并发更新同一个共享资源，实现了同步
+* synchronized 无法用来实现不同线程之间的消息传递（通信）
+
+![image-20240326162422032](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240326162422032.png)
+
+#### 管程法
+
+![image-20240326162540457](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240326162540457.png)
+
+**没有什么是加一层解决不了的**
+
+当生产者生产的产品达到缓冲区大小时  调用wait方法等待 然后调用notify方法通知消费者消费
+
+当消费者消费完缓冲区中所有产品时 调用wait方法等待生产者生产 然后调用notify方法通知生产者生产
+
+```java
+// 测试生产者，消费者模型 -> 缓冲区：管程法
+public class BufferDemo {
+    public static void main(String[] args) {
+        SynBuffer synBuffer = new SynBuffer();
+
+        Producer producer = new Producer(synBuffer);
+        Customer customer = new Customer(synBuffer);
+
+        customer.start();
+        producer.start();
+    }
+}
+// 生产者
+class Producer extends Thread{
+    SynBuffer synBuffer;
+
+    Producer(SynBuffer synBuffer){
+        this.synBuffer = synBuffer;
+    }
+
+    // 生产
+    @Override
+    public void run() {
+        for (int i = 1; i < 30; i++) {
+            synBuffer.push(new Chicken(i));
+        }
+    }
+}
+// 消费者
+class Customer extends Thread{
+    SynBuffer synBuffer;
+
+    Customer(SynBuffer synBuffer){
+        this.synBuffer = synBuffer;
+    }
+    // 消费
+    @Override
+    public void run() {
+        for (int i = 1; i < 30; i++) {
+            synBuffer.pop();
+        }
+    }
+}
+// 产品
+class Chicken {
+    int id; //产品编号
+    public Chicken(int id) {
+        this.id = id;
+    }
+}
+// 缓冲区
+class SynBuffer{
+
+    // 容器大小
+    Chicken[] chickens = new Chicken[10];
+    // 当前可以被消费的鸡的数量
+    int count = 0;
+
+    // 生产者放入产品
+    public synchronized void push(Chicken chicken){
+        // 是否满？
+        if (count == chickens.length){
+            // 等消费者消费
+            System.out.println("鸡满了，等消费");
+            try {
+                this.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        // 如果没有满
+        chickens[count] = chicken;
+        count++;
+        System.out.println("生产了第 "+count+" 只鸡");
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // 等消费者消费
+        this.notifyAll();
+    }
+
+    // 消费者消费产品
+    public synchronized void pop(){
+        // 是否有产品？
+        if (count == 0){
+            // 等待生产者生产产品
+            System.out.println("没鸡了，等生产");
+            try {
+                this.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("消费了第 "+count+" 只鸡");
+        count--;
+        Chicken chicken = chickens[count];
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // 吃完了，等待生产者生产
+        this.notifyAll();
+
+    }
+}
+```
+
+#### 信号灯法
+
+**使用标志位flag来判断是否等待或者通知从而完成通信**
+
+### 线程池
+
+![image-20240326164354562](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240326164354562.png)
+
+![image-20240326164454012](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240326164454012.png)
+
+```java
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+// 测试线程池
+public class TestPool {
+    public static void main(String[] args) {
+
+        //1.创建服务，创建线程池
+        ExecutorService service = Executors.newFixedThreadPool(3);
+
+        //执行
+        service.execute(new MyThread());
+        service.execute(new MyThread());
+        service.execute(new MyThread());
+
+        //2.关闭链接
+        service.shutdown();
+    }
+}
+
+class MyThread extends Thread{
+    @Override
+    public void run() {
+        System.out.println(Thread.currentThread().getName());
+    }
+}
+```
+
 ## IO流
+
 ### 文件
 #### 创建文件
 |                   方法                   |       作用       |
@@ -631,6 +880,7 @@ public void transformation() throws IOException {
 #### OutputStreamWriter
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310091358067.PNG)  
 为了写入指定的编码格式文件，可以用OutputStreamWriter包装（转换）字节流  
+
 ```java
 public void transformation() throws IOException {
     String filePath="D:\\test1.txt";
@@ -640,7 +890,73 @@ public void transformation() throws IOException {
 }
 ```
 
+## Lamda表达式
 
+Lamda的运用首先要求是函数式接口
 
+- 对于一个接口，其中只有一个抽象方，那么它就是一个函数式接口
 
+```java
+public class myLambdaDemo {
+    // 3. 静态内部类
+    static class Like3 implements ILike{
+        @Override
+        public void lambda() {
+            System.out.println("I like lambda3");
+        }
+    }
+    public static void main(String[] args) {
+        ILike like = new Like2();
+        like.lambda();
 
+        like = new Like3();
+        like.lambda();
+
+        // 4. 局部内部类
+        class Like4 implements ILike{
+            @Override
+            public void lambda() {
+                System.out.println("I like lambda4");
+            }
+        }
+        like = new Like4();
+        like.lambda();
+
+        // 5. 匿名内部类, 没有类的名称，必须借助接口或者父类
+        like = new ILike() {
+            @Override
+            public void lambda() {
+                System.out.println("I like lambda5");
+            }
+        };
+        like.lambda();
+
+        // 6. 用lambda简化
+        like = ()->{
+            System.out.println("I like lambda6");
+        };
+        like.lambda();
+
+    }
+}
+
+// 1. 定义一个函数式接口
+interface ILike{
+    // 默认就是 abstract
+    void lambda();
+}
+
+// 2. 实现类
+class Like2 implements ILike{
+    @Override
+    public void lambda() {
+        System.out.println("I like lambda2");
+
+    }
+}
+
+```
+
+其实很类似前端的箭头函数
+
+ 
