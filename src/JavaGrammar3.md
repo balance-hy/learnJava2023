@@ -148,11 +148,13 @@ class Cat extends Thread{
 }
 ```
 ##### 实现Runnable接口
-方式二：实现Runnable接口，重写run方法  
+方式二：实现Runnable接口，重写run方法 
 为什么需要这种方法？因为：
 
 1. java是单继承的，在某些情况下一个类可能已经继承了某个父类，这时就无法再继承Thread类了
 2. 此时可以通过实现Runnable接口来创建线程  
+
+**注意 Runnable 没有返回值，效率相对于Callable较低**
 
 ```java
 public class Demo1 {
@@ -220,6 +222,7 @@ class Dog implements Runnable{
 **用户线程也叫工作线程**，线程的任务执行完或通知方式来结束  
 **守护线程一般是为工作线程服务的**，当所有的用户线程结束，守护线程自动结束  
 常见的守护线程：垃圾回收机制  
+
 ```java
 线程名.setDaemon(true);
 public static void main(String[] args) throws InterruptedException {
@@ -261,7 +264,7 @@ public static void main(String[] args) throws InterruptedException {
 
   一个线程可以在给定时间点处于一个状态。 这些状态是不反映任何操作系统线程状态的虚拟机状态。  
 
-`thread.getState()`获得线程状态
+**`thread.getState()`获得线程状态**
 
 ![image-20240326143423384](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240326143423384.png)
 
@@ -894,7 +897,7 @@ public void transformation() throws IOException {
 
 Lamda的运用首先要求是函数式接口
 
-- 对于一个接口，其中只有一个抽象方，那么它就是一个函数式接口
+- 对于一个接口，其中只有一个抽象方法，但是可以有多个非抽象方法的接口，那么它就是一个函数式接口
 
 ```java
 public class myLambdaDemo {
