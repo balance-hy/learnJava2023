@@ -633,6 +633,8 @@ TimeUnit.SECONDS.sleep(1); //休眠1s
 
 #### 传统 synchronized
 
+独占锁 同一时刻只允许一个线程持有锁
+
 ```java
 //基本的卖票例子
 /*
@@ -678,6 +680,8 @@ public synchronized void sale(){
 ```
 
 #### Lock 类
+
+`ReentrantLock`: 是一种互斥锁（Mutex Lock）（独占锁），它**只允许一个线程同时访问共享资源，其他线程必须等待当前线程释放锁后才能访问**。`ReentrantLock` 具有可重入性，同一个线程可以多次获得同一个锁。
 
 ![image-20240327102659913](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240327102659913.png)
 
@@ -1507,3 +1511,524 @@ public class Test11_Semaphore {
 
 - **Semaphore**: 主要用于控制对共享资源的访问数量，**它允许多个线程同时访问共享资源，但是可以限制同时访问的线程数量。**
 - **互斥锁**: 主要用于保护临界区，它**只允许一个线程访问共享资源，其他线程必须等待当前线程释放锁后才能访问。**
+
+### ReadWriteLock
+
+`ReadWriteLock` 是 Java 中用于支持读写分离的同步工具，**它允许多个线程同时读取共享资源，但只允许一个线程写入共享资源**。读写锁提供了比传统的互斥锁更高的并发性，在读多写少的场景下可以提升性能。
+
+我们希望**写入时只允许一个线程写入，而读取时可以多个线程同时读取**
+
+```java
+public class Test12_ReadWriteLock {
+    public static void main(String[] args) {
+        MyCache myCache = new MyCache();
+        for (int i = 0; i < 5; i++) {
+            final int tempInt = i;
+            new Thread(() -> {
+                myCache.write(tempInt + "", tempInt + "");
+            }, String.valueOf(i)).start();
+        }
+        for (int i = 0; i < 5; i++) {
+            final int tempInt = i;
+            new Thread(() -> {
+                myCache.read(tempInt + "");
+            }, String.valueOf(i)).start();
+        }
+    }
+}
+class MyCache{
+    private volatile Map<String,String> map=new HashMap<>();
+
+    public void write(String key,String value){
+        System.out.println(Thread.currentThread().getName()+"写入开始");
+        map.put(key, value);
+        System.out.println(Thread.currentThread().getName()+"写入结束");
+
+    }
+    public void read(String key){
+        System.out.println(Thread.currentThread().getName()+"读取开始");
+        map.get(key);
+        System.out.println(Thread.currentThread().getName()+"读取结束");
+    }
+}
+```
+
+```
+0写入开始
+1写入开始
+4写入开始
+0写入结束
+```
+
+不满足需求
+
+使用读写锁更改
+
+```java
+public class Test12_ReadWriteLock {
+    public static void main(String[] args) {
+        MyCache myCache = new MyCache();
+        for (int i = 0; i < 5; i++) {
+            final int tempInt = i;
+            new Thread(() -> {
+                myCache.write(tempInt + "", tempInt + "");
+            }, String.valueOf(i)).start();
+        }
+        for (int i = 0; i < 5; i++) {
+            final int tempInt = i;
+            new Thread(() -> {
+                myCache.read(tempInt + "");
+            }, String.valueOf(i)).start();
+        }
+    }
+}
+class MyCache{
+    private volatile Map<String,String> map=new HashMap<>();
+    private ReadWriteLock readWriteLock=new ReentrantReadWriteLock();
+
+    public void write(String key,String value){
+        readWriteLock.writeLock().lock();//加写锁
+        try {
+            System.out.println(Thread.currentThread().getName()+"写入开始");
+            map.put(key, value);
+            System.out.println(Thread.currentThread().getName()+"写入结束");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            readWriteLock.writeLock().unlock();//解锁
+        }
+
+    }
+    public void read(String key){
+        readWriteLock.readLock().lock();//加读锁
+        try {
+            System.out.println(Thread.currentThread().getName()+"读取开始");
+            map.get(key);
+            System.out.println(Thread.currentThread().getName()+"读取结束");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            readWriteLock.readLock().lock();//解锁
+        }
+    }
+}
+```
+
+```
+1写入开始
+1写入结束
+2写入开始
+2写入结束
+0写入开始
+0写入结束
+3写入开始
+3写入结束
+4写入开始
+4写入结束
+4读取开始
+0读取开始
+4读取结束
+2读取开始
+2读取结束
+3读取开始
+3读取结束
+1读取开始
+1读取结束
+0读取结束
+```
+
+满足要求
+
+`volatile` 是 Java 中的一个关键字，主要用于确保变量的可见性、禁止指令重排序以及对变量的修改立即对其他线程可见。它的主要作用包括：
+
+1. **可见性**：当一个变量被 `volatile` 关键字修饰时，当一个线程修改了这个变量的值后，其他线程能够立即看到修改后的值。**这是因为 `volatile` 修饰的变量会被直接写入主内存，而不是线程的本地内存中，从而保证了所有线程对该变量的可见性**。
+2. **禁止指令重排序**：`volatile` 关键字还可以禁止指令重排序优化。在 Java 内存模型中，编译器和处理器会对指令进行优化重排序，但对于被 `volatile` 修饰的变量，编译器和处理器会禁止对其进行重排序，从而确保了程序的正确性。
+3. **保证原子性**：`volatile` 关键字本身并不具备原子性，它只能保证对于单个的读/写操作具备原子性。但是对于多个操作组合起来的复合操作，`volatile` 无法保证其原子性，仍需要使用 `synchronized` 或 `Lock` 等机制来保证。
+
+### 阻塞队列
+
+![img](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/3b6b0b33e6e9b0f2261a89b6e42e78ea.png)
+
+#### BlockQueue
+
+是Collection的一个子类
+
+什么情况下我们会使用阻塞队列
+
+> 多线程并发处理、线程池
+
+![image-20240329100307617](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240329100307617.png)
+
+**BlockingQueue 有四组api**
+
+| 方式         | 抛出异常 | 不会抛出异常，有返回值 | 阻塞、等待 | 超时等待                |
+| ------------ | -------- | ---------------------- | ---------- | ----------------------- |
+| 添加         | add      | offer                  | put        | offer(timenum.timeUnit) |
+| 移出         | remove   | poll                   | take       | poll(timenum,timeUnit)  |
+| 判断队首元素 | element  | peek                   | -          |                         |
+
+```java
+public class Test13_BlockQueue {
+    public static void main(String[] args) {
+
+        try {
+            test5();
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+    //-------------------------add/remove---------------------------------------
+    public static void test1(){
+        //参数为需要初始化队列的大小
+        ArrayBlockingQueue<Object> blockingQueue = new ArrayBlockingQueue<>(3);
+        System.out.println(blockingQueue.add("a"));//add 返回添加成功 若超出容量，抛出异常
+        System.out.println(blockingQueue.add("b"));
+        System.out.println(blockingQueue.add("c"));
+       // System.out.println(blockingQueue.add("d"));//java.lang.IllegalStateException: Queue full
+
+        System.out.println(blockingQueue.remove());//remove 返回移除的元素 若队列为空，抛出异常
+        System.out.println(blockingQueue.remove());
+        System.out.println(blockingQueue.remove());
+        //System.out.println(blockingQueue.remove());//java.util.NoSuchElementException
+    }
+    //-------------------------offer/poll---------------------------------------
+    public static void test2(){
+        ArrayBlockingQueue<Object> blockingQueue = new ArrayBlockingQueue<>(3);
+        System.out.println(blockingQueue.offer("a"));//offer 返回添加成功与否  若超出容量，返回false
+        System.out.println(blockingQueue.offer("b"));
+        System.out.println(blockingQueue.offer("c"));
+        //System.out.println(blockingQueue.offer("d"));//false
+
+        System.out.println(blockingQueue.poll());//poll 返回移除的元素 若队列为空，返回null
+        System.out.println(blockingQueue.poll());
+        System.out.println(blockingQueue.poll());
+        //System.out.println(blockingQueue.poll());//null
+    }
+    //-------------------------put/take---------------------------------------
+    public static void test3() throws InterruptedException {
+        ArrayBlockingQueue<Object> blockingQueue = new ArrayBlockingQueue<>(3);
+        blockingQueue.put("a");//put 不返回值 若超出容量阻塞在那里
+        blockingQueue.put("b");
+        blockingQueue.put("c");
+        //blockingQueue.put("d");程序阻塞
+        System.out.println(blockingQueue.take());//take 返回取出的元素 若无元素可取则阻塞
+        System.out.println(blockingQueue.take());
+        System.out.println(blockingQueue.take());
+        //System.out.println(blockingQueue.take());//程序阻塞
+    }
+    //-------------------------offer/poll超时等待---------------------------------------
+    public static void test4() throws InterruptedException {
+        ArrayBlockingQueue<Object> blockingQueue = new ArrayBlockingQueue<>(3);
+        System.out.println(blockingQueue.offer("a",2, TimeUnit.SECONDS));//offer超时等待，若插入不成功，等待指定时间，若还不成功 返回false
+        System.out.println(blockingQueue.offer("b",2, TimeUnit.SECONDS));
+        System.out.println(blockingQueue.offer("c",2, TimeUnit.SECONDS));
+        //System.out.println(blockingQueue.offer("d",2, TimeUnit.SECONDS));//false
+
+        System.out.println(blockingQueue.poll(2, TimeUnit.SECONDS));//poll超时等待，若取不成功，等待指定时间，若还不成功 返回null
+        System.out.println(blockingQueue.poll(2, TimeUnit.SECONDS));
+        System.out.println(blockingQueue.poll(2, TimeUnit.SECONDS));
+        //System.out.println(blockingQueue.poll(2, TimeUnit.SECONDS));//null
+    }
+    //-------------------------element 异常/peek 返回值 队首元素---------------------------------------
+    public static void test5(){
+        ArrayBlockingQueue<Object> blockingQueue = new ArrayBlockingQueue<>(3);
+        // java.lang.RuntimeException: java.util.NoSuchElementException
+        //System.out.println(blockingQueue.element());//element 返回队首元素 若队列为空，抛出异常 
+
+        System.out.println(blockingQueue.peek());//peek 返回队首元素 若队列为空，返回null
+    }
+
+}
+```
+
+#### SynchronousQueue同步队列
+
+`SynchronousQueue` 是 Java 并发包（`java.util.concurrent`）中的一种特殊类型的队列，**它在生产者和消费者之间传递元素，但其内部没有容量。也就是说，生产者线程往队列中添加元素时，必须等待消费者线程来获取这个元素；反之，消费者线程在尝试获取元素时，必须等待生产者线程往队列中添加元素。**因此，`SynchronousQueue` 在内部没有任何容量，**每个插入操作必须等待一个对应的移除操作**，反之亦然。
+
+```java
+public class Test14_SynchronousQueue {
+    public static void main(String[] args) {
+        test();
+    }
+    public static void test() {
+        SynchronousQueue<String> synchronousQueue = new SynchronousQueue<>();//同步队列
+        new Thread(() -> {
+            try {
+                System.out.println(Thread.currentThread().getName() + " put a");
+                synchronousQueue.put("a");
+                System.out.println(Thread.currentThread().getName() + " put b");
+                synchronousQueue.put("b");
+                System.out.println(Thread.currentThread().getName() + " put c");
+                synchronousQueue.put("c");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+        new Thread(() -> {
+            try {
+                System.out.println(Thread.currentThread().getName() + " take a");
+                synchronousQueue.take();
+                System.out.println(Thread.currentThread().getName() + " take b");
+                synchronousQueue.take();
+                System.out.println(Thread.currentThread().getName() + " take c");
+                synchronousQueue.take();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+}
+```
+
+### 线程池
+
+线程池：三大方式、七大参数、四种拒绝策略
+
+> 池化技术
+
+程序的运行，本质：占用系统的资源！我们需要去优化资源的使用 ===> 池化技术
+
+线程池、JDBC的连接池、内存池、对象池 等等。。。。
+
+**资源的创建、销毁十分消耗资源**
+
+**池化技术**：事先准备好一些资源，如果有人要用，就来我这里拿，用完之后还给我，以此来提高效率。
+
+#### 线程池的好处
+
+1. **减少资源消耗**：线程池中的线程可以被重复利用，避免了频繁地创建和销毁线程的开销，从而减少了系统资源的消耗。
+2. **提高响应速度**：通过线程池，可以预先创建一定数量的线程，当有任务到达时，可以立即分配线程来处理，不需要等待新线程的创建，从而提高了任务的响应速度。
+3. **提高系统稳定性**：合理地配置线程池的大小可以控制系统中并发线程的数量，避免因创建过多线程而导致系统资源不足或系统负载过高，从而提高了系统的稳定性。
+4. **方便管理和调优**：线程池提供了一系列管理和监控线程的方法，可以方便地对线程池进行监控、调优和管理，例如设置线程池的大小、超时时间、拒绝策略等。
+5. **支持任务排队**：线程池可以通过任务队列来存储等待执行的任务，当线程池中的线程达到上限时，新的任务可以被放入队列中等待执行，从而避免了任务的丢失和阻塞。
+6. **控制并发度**：通过合理地设置线程池的大小和任务队列的容量，可以灵活控制系统的并发度，避免因并发量过高而导致系统崩溃或性能下降。
+
+==线程复用、可以控制最大并发数、管理线程==
+
+#### 三大方法
+
+```java
+public class Demo01_ThreeFunc {
+    public static void main(String[] args) {
+        //ExecutorService executorService = Executors.newSingleThreadExecutor();//单个线程
+        //ExecutorService executorService = Executors.newFixedThreadPool(5);//多个线程，固定大小的线程池
+        ExecutorService executorService = Executors.newCachedThreadPool();//根据任务所需自动调整线程池大小
+        try {
+            for (int i = 0; i < 100; i++) {
+                executorService.execute(()-> System.out.println(Thread.currentThread().getName()+"ok"));
+            }
+        } finally {
+            executorService.shutdown();
+        }
+    }
+}
+```
+
+#### 七大参数
+
+```java
+public static ExecutorService newSingleThreadExecutor() {
+    return new FinalizableDelegatedExecutorService
+        (new ThreadPoolExecutor(1, 1,
+                                0L, TimeUnit.MILLISECONDS,
+                                new LinkedBlockingQueue<Runnable>()));
+}
+public static ExecutorService newFixedThreadPool(int nThreads) {
+    return new ThreadPoolExecutor(nThreads, nThreads,
+                                  0L, TimeUnit.MILLISECONDS,
+                                  new LinkedBlockingQueue<Runnable>());
+}
+
+public static ExecutorService newCachedThreadPool() {
+    return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                                  60L, TimeUnit.SECONDS,
+                                  new SynchronousQueue<Runnable>());
+}
+
+// ThreadPoolExecutor
+public ThreadPoolExecutor(int corePoolSize,//核心线程数
+                          int maximumPoolSize,//最大线程数
+                          long keepAliveTime,//超时等待
+                          TimeUnit unit,//时间单位
+                          BlockingQueue<Runnable> workQueue) {//阻塞队列
+    this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+         Executors.defaultThreadFactory(), defaultHandler);
+}        //线程工厂                         //拒绝策略
+```
+
+底层都是通过 new ThreadPoolExecutor去创建的，该类接收7个参数去创建
+
+![image-20240329125209117](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240329125209117.png)
+
+![image-20240329123345076](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240329123345076.png)
+
+```java
+public class Demo02_SevenParm {
+
+    public static void main(String[] args) {
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+                2,
+                5,
+                3,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(3),
+                Executors.defaultThreadFactory(),
+                new ThreadPoolExecutor.AbortPolicy());
+        try {
+            for (int i = 0; i < 100; i++) {
+                threadPoolExecutor.execute(()-> System.out.println(Thread.currentThread().getName()+"ok"));
+            }
+        } finally {
+            threadPoolExecutor.shutdown();
+        }
+    }
+
+}
+```
+
+#### 四大拒绝策略
+
+- **new ThreadPoolExecutor.AbortPolicy()**： //该拒绝策略为：银行满了，还有人进来，不处理这个人的，并抛出异常，超出最大承载，就会抛出异常：队列容量大小+maxPoolSize
+- **new ThreadPoolExecutor.CallerRunsPolicy()**： //该拒绝策略为：哪来的去哪里 main线程进行处理
+- **new ThreadPoolExecutor.DiscardPolicy():** //该拒绝策略为：队列满了,丢掉任务，不会抛出异常。
+- **new ThreadPoolExecutor.DiscardOldestPolicy()**： //该拒绝策略为：队列满了，尝试去和最早的线程竞争，不会抛出异常
+
+#### 小结及拓展
+
+线程池大小如何设置？
+
+**CPU密集型**：电脑的核数是几核就选择几；选择maximunPoolSize的大小
+
+```java
+ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+    2,
+    Runtime.getRuntime().availableProcessors(),//代码动态获取
+    3,
+    TimeUnit.SECONDS,
+    new LinkedBlockingQueue<>(3),
+    Executors.defaultThreadFactory(),
+    new ThreadPoolExecutor.AbortPolicy());
+```
+
+**I/O密集型**：在程序中有15个大型任务，io十分占用资源；
+
+I/O密集型就是判断我们程序中十分耗I/O的线程数量，大约是最大I/O数的一倍到两倍之间。
+
+### 四大函数式接口
+
+**lambda表达式、链式编程、函数式接口、Stream流式计算**
+
+**函数式接口**：只有一个抽象方法的接口 例如Runable
+
+```java
+@FunctionalInterface
+public interface Runnable {
+    public abstract void run();
+}
+//foreach方法 参数消费者类型的函数式接口
+```
+
+![img](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/a4bd596dc9a77d9da8821dd6312a4314.png)
+
+ 
+
+#### Function 函数型接口
+
+![image-20240329132200404](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240329132200404.png)
+
+```java
+public class Demo01_Function {
+    public static void main(String[] args) {
+        Function<String, String> function = str->str;//(str)->{return str;}
+        System.out.println(function.apply("helloworld"));
+    }
+}
+```
+
+#### Predicate 断言型接口
+
+![image-20240329132832165](C:\Users\18356\AppData\Roaming\Typora\typora-user-images\image-20240329132832165.png)
+
+```java
+public class Demo02_Predicate {
+    public static void main(String[] args) {
+        Predicate<String> predicate=str->str.isEmpty();
+        System.out.println(predicate.test("444"));//传入不为空时返回true，否则返回false
+    }
+}
+```
+
+#### Suppier 供给型接口
+
+**无参数**
+
+![image-20240329133230941](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240329133230941.png)
+
+```java
+public class Demo04_Supplier {
+    public static void main(String[] args) {
+        Supplier<Integer> supplier=()->{return 10;};
+        System.out.println(supplier.get());
+    }
+}
+```
+
+#### Consummer 消费型接口
+
+无返回值
+
+![image-20240329133147127](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240329133147127.png)
+
+```java
+public class Demo03_Consumer {
+    public static void main(String[] args) {
+        Consumer<String> consumer= System.out::println;
+
+        consumer.accept("hello world");
+    }
+}
+```
+
+### Stream 流式运算
+
+> 什么是 Stream 流式计算 
+
+大数据：存储（集合/mysql）+计算（Stream ）
+
+```java
+/**
+ * Description：
+ * 题目要求： 用一行代码实现
+ * 1. Id 必须是偶数
+ * 2.年龄必须大于23
+ * 3. 用户名转为大写
+ * 4. 用户名倒序
+ * 5. 只能输出一个用户
+**/
+
+public class StreamDemo {
+    public static void main(String[] args) {
+        User u1 = new User(1, "a", 23);
+        User u2 = new User(2, "b", 23);
+        User u3 = new User(3, "c", 23);
+        User u4 = new User(6, "d", 24);
+        User u5 = new User(4, "e", 25);
+
+        List<User> list = Arrays.asList(u1, u2, u3, u4, u5);
+        // lambda、链式编程、函数式接口、流式计算
+        list.stream()
+                .filter(user -> {return user.getId()%2 == 0;})
+                .filter(user -> {return user.getAge() > 23;})
+                .map(user -> {return user.getName().toUpperCase();})
+                .sorted((user1, user2) -> {return user2.compareTo(user1);})
+                .limit(1)
+                .forEach(System.out::println);
+    }
+}
+```
+
+### ForkJoin 分支合并
+
+
+
