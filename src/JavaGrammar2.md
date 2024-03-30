@@ -504,40 +504,38 @@ Stream.of(arr).map(e ->e.length()).forEach(e->System.out.println(e));
 6
 ```
 ##### flatMap
-对流中的每个元素进行扁平化提取，组成新的流。  
-map()与flatMap()对比：map提取流中的引用组成新的流，而flatMap提取流中的元素组成新的流。  
-```java
-String[] arr = {"1-2-3-4","5-6-7"};
-Stream.of(arr).map(e->Stream.of(e.split("-"))).forEach(e-> System.out.println(e));
-Stream.of(arr).flatMap(e->Stream.of(e.split("-"))).forEach(e-> System.out.println(e));
 
-List<List<String>> lists = new ArrayList<>();
-List<String> list1 = Arrays.asList("a","b","c");
-List<String> list2 = Arrays.asList("d","e","f");
-lists.add(list1);
-lists.add(list2);
-lists.stream().flatMap(e->e.stream()).forEach(e-> System.out.println(e));
+1. **map() 方法**：
+   - `map()` 方法用于将流中的每个元素按照指定的函数进行映射转换，将原始流中的每个元素通过指定的函数映射为另一个元素。
+   - `map()` 方法返回的是一个新的流，**该流中的每个元素都是通过指定的映射函数转换得到的**。
+   - `map()` 方法适用**于一对一的转换，即原始流中的每个元素都只映射为一个元素**。
+2. **flatMap() 方法**：
+   - `flatMap()` 方法用于将流中的每个元素映射为一个流，然后将这些流连接成一个流。
+   - `flatMap()` 方法**返回的是一个新的流，该流中的元素是原始流中的每个元素映射得到的流中的所有元素连接而成的。**
+   - `flatMap()` 方法适用于**一对多的转换，即原始流中的每个元素都可以映射为一个包含多个元素的流**。
+
+下面是 `map()` 和 `flatMap()` 方法的对比示例：
+
+```java
+javaCopy codeList<String> words = Arrays.asList("Java", "is", "awesome");
+
+// 使用 map() 方法将每个字符串转换为其长度
+List<Integer> lengths = words.stream()
+    .map(String::length)
+    .collect(Collectors.toList());
+System.out.println("Lengths: " + lengths);  // Output: Lengths: [4, 2, 7]
+
+// 使用 flatMap() 方法将每个字符串拆分为字符流，然后连接成一个流
+List<Character> characters = words.stream()
+    .flatMap(word -> word.chars().mapToObj(c -> (char)c))
+    .collect(Collectors.toList());
+System.out.println("Characters: " + characters);  
+// Output: Characters: [J, a, v, a, i, s, a, w, e, s, o, m, e]
 ```
-```json
-//输出：
-java.util.stream.ReferencePipeline$Head@5680a178
-java.util.stream.ReferencePipeline$Head@5fdef03a
-1
-2
-3
-4
-5
-6
-7
-    
-a
-b
-c
-d
-e
-f
-```
-flatMapToInt()、flatMapToLong()、flatMapToDouble()是flatMap()的是三个变种方法，主要作用是免除自动拆箱装箱的额外消耗。  
+
+在上面的示例中，`map()` 方法将每个字符串映射为其长度，得到一个包含字符串长度的流；而 `flatMap()` 方法将每个字符串映射为其字符流，然后将这些字符流连接成一个流，得到一个包含字符的流。
+
+**flatMapToInt()、flatMapToLong()、flatMapToDouble()是flatMap()的是三个变种方法，主要作用是免除自动拆箱装箱的额外消耗。**  
 ```json
 String[] arr = {"1","2","3","4","5","6"};
 Stream.of(arr).flatMapToDouble(e-> DoubleStream.of(Double.parseDouble(e))).forEach(e-> System.out.println("value："+e+"，type："+ToolUtil.getType(e)));

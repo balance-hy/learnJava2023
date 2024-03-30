@@ -395,6 +395,7 @@ Class<Integer> type = Integer.TYPE;
 ##### class
 注意getConstructors无父类构造器，图片有误
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310251419200.PNG)  
+
 ##### Field
 ![](https://raw.githubusercontent.com/balance-hy/typora/master/2023img/202310251437070.PNG)
 ##### methods
@@ -1012,7 +1013,7 @@ class Phone {
 
 打电话
 
-**为什么？ 如果你认为是顺序在前？ 这个答案是错误的！**
+**为什么？ 如果你认为是打电话顺序在前？ 这个答案是错误的！**
 
 #### 问题2
 
@@ -1639,12 +1640,6 @@ class MyCache{
 
 满足要求
 
-`volatile` 是 Java 中的一个关键字，主要用于确保变量的可见性、禁止指令重排序以及对变量的修改立即对其他线程可见。它的主要作用包括：
-
-1. **可见性**：当一个变量被 `volatile` 关键字修饰时，当一个线程修改了这个变量的值后，其他线程能够立即看到修改后的值。**这是因为 `volatile` 修饰的变量会被直接写入主内存，而不是线程的本地内存中，从而保证了所有线程对该变量的可见性**。
-2. **禁止指令重排序**：`volatile` 关键字还可以禁止指令重排序优化。在 Java 内存模型中，编译器和处理器会对指令进行优化重排序，但对于被 `volatile` 修饰的变量，编译器和处理器会禁止对其进行重排序，从而确保了程序的正确性。
-3. **保证原子性**：`volatile` 关键字本身并不具备原子性，它只能保证对于单个的读/写操作具备原子性。但是对于多个操作组合起来的复合操作，`volatile` 无法保证其原子性，仍需要使用 `synchronized` 或 `Lock` 等机制来保证。
-
 ### 阻塞队列
 
 ![img](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/3b6b0b33e6e9b0f2261a89b6e42e78ea.png)
@@ -1845,6 +1840,7 @@ public static ExecutorService newCachedThreadPool() {
                                   60L, TimeUnit.SECONDS,
                                   new SynchronousQueue<Runnable>());
 }
+// 三个方法的底层都是 ThreadPoolExecutor
 
 // ThreadPoolExecutor
 public ThreadPoolExecutor(int corePoolSize,//核心线程数
@@ -2030,5 +2026,415 @@ public class StreamDemo {
 
 ### ForkJoin 分支合并
 
+**大数据中，并行执行任务，提高效率**
 
+大数据：Map Reduce （把大任务拆分成小任务，用不同的线程并且去处理，最终合并结果）
+
+![img](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/c2acd43fd3363e780aa9709a6fae2d8c.png)
+
+#### **ForkJoin的特点：工作窃取**
+
+实现原理是：**双端队列**！从上面和下面都可以去拿到任务进行执行！
+
+![image-20200812163701588](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/7ccffb99e41ec5a89ef2118cf0c4f0f2.png)
+
+####  如何使用ForkJoin
+
+- 1、通过**ForkJoinPool**来执行
+- 2、计算任务 **execute(ForkJoinTask<?> task)**
+- 3、计算类要去继承ForkJoinTask；
+
+![image-20240330132236977](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240330132236977.png)
+
+一个任务的具体实现
+
+```java
+public class ForkJoinDemo extends RecursiveTask<Long> {
+    private long start;
+    private long end;
+
+    //临界值，大于这个值就使用ForkJoin
+    private long THRESHOLD = 10000L;
+
+    public ForkJoinDemo(long start, long end) {
+        this.start = start;
+        this.end = end;
+    }
+
+    /**
+     * 任务的具体计算
+     *
+     * @return the result of the computation
+     */
+    @Override
+    protected Long compute() {
+        if(end - start < THRESHOLD){
+            long sum = 0L;
+            for(long i = start; i <= end; i++){
+                sum += i;
+            }
+            return sum;
+        }else{
+            long middle = start+(end-start)/2;//防止溢出
+            ForkJoinDemo left = new ForkJoinDemo(start, middle);
+            ForkJoinDemo right = new ForkJoinDemo(middle + 1, end);
+            left.fork();//拆分任务，将任务压入线程队列
+            right.fork();//拆分任务，把任务压入线程队列
+            return left.join() + right.join();//获得合并结果
+        }
+    }
+}
+```
+
+```java
+public class Test_ForkJoin {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        test1();
+        test2();
+        test3();
+    }
+
+    public static void test1() {
+        long startTime=System.currentTimeMillis();
+        long sum=0;
+        for(long i=1;i<=20_0000_0000L;i++) {
+            sum+=i;
+        }
+        long endTime=System.currentTimeMillis();
+        System.out.println(sum+"       "+"耗时"+(endTime-startTime)+"毫秒");
+        System.out.println("------------------------------------");
+    }
+
+    public static void test2() throws ExecutionException, InterruptedException {
+        long startTime=System.currentTimeMillis();
+
+        //使用forkjoin
+        ForkJoinPool forkJoinPool = new ForkJoinPool();//新建 forkjoinpool
+        ForkJoinDemo forkJoinDemo = new ForkJoinDemo(0, 20_0000_0000L); //新建任务
+        ForkJoinTask<Long> submit = forkJoinPool.submit(forkJoinDemo);//提交任务
+        long sum = submit.get(); //获取结果
+
+        long endTime=System.currentTimeMillis();
+        System.out.println(sum+"       "+"耗时"+(endTime-startTime)+"毫秒");
+        System.out.println("------------------------------------");
+    }
+    public static void test3() {
+        long startTime=System.currentTimeMillis();
+        long sum= LongStream.rangeClosed(0,20_0000_0000L).parallel().reduce(0,Long::sum);
+        long endTime=System.currentTimeMillis();
+        System.out.println(sum+"       "+"耗时"+(endTime-startTime)+"毫秒");
+        System.out.println("------------------------------------");
+    }
+}
+```
+
+```
+2000000001000000000       耗时485毫秒
+------------------------------------
+2000000001000000000       耗时163毫秒
+------------------------------------
+2000000001000000000       耗时214毫秒
+------------------------------------
+```
+
+当数据量不是特别大时，并行流不一定比forkjoin快
+
+### 异步回调
+
+> Future 设计的初衷：对将来的某个事件结果进行建模！
+
+前端的ajax
+
+![img](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/9f7114b8ef92f8bd5889d865ccf4707a.png)
+
+平时都使用**CompletableFuture**
+
+#### 没有返回值的runAsync异步回调
+
+```java
+public class Test_Future {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
+            // 模拟一个耗时的操作，例如读取数据库或调用远程服务
+            try {
+                TimeUnit.SECONDS.sleep(2);// 假设耗时2秒
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println(Thread.currentThread().getName() + "runAsync=>Void");
+        });
+        // 主线程可以继续执行其他任务
+        System.out.println("11111");
+        // 等待异步任务完成
+        completableFuture.get();
+    }
+}
+```
+
+#### 有返回值的异步回调supplyAsync
+
+```java
+CompletableFuture<Integer> completableFuture = CompletableFuture.supplyAsync(() -> {
+    try {
+        TimeUnit.SECONDS.sleep(2);// 假设耗时2秒
+    } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+    }
+    System.out.println(Thread.currentThread().getName() + "   supplyAsync=>Integer");
+    return 200;
+});
+System.out.println(completableFuture.whenComplete((t,u)->{
+    System.out.println("t=>"+t);//正常的返回结果
+    System.out.println("u=>"+u);//抛出错误的信息
+}).exceptionally((e)->{
+    System.out.println(e.getMessage());
+    return 404;
+}).get());
+```
+
+**whenComplete**: 有两个参数，一个是t 一个是u
+
+T：是代表的 **正常返回的结果**；
+
+U：是代表的 **抛出异常的错误信息**；
+
+如果发生了异常，get可以获取到**exceptionally**返回的值；
+
+### JMM
+
+`volatile` 是 Java 中的一个关键字，它的主要作用包括：
+
+1. **可见性**：当一个变量被 `volatile` 关键字修饰时，当一个线程修改了这个变量的值后，其他线程能够立即看到修改后的值。**这是因为 `volatile` 修饰的变量会被直接写入主内存，而不是线程的本地内存中，从而保证了所有线程对该变量的可见性**。
+2. **禁止指令重排序**：`volatile` 关键字还可以禁止指令重排序优化。在 Java 内存模型中，编译器和处理器会对指令进行优化重排序，但对于被 `volatile` 修饰的变量，编译器和处理器会禁止对其进行重排序，从而确保了程序的正确性。
+3. **不保证原子性**：`volatile` 关键字本身并不具备原子性，它**只能保证对于单个的读/写操作具备原子性。但是对于多个操作组合起来的复合操作，`volatile` 无法保证其原子性**，仍需要使用 `synchronized` 或 `Lock` 等机制来保证。
+
+==JMM：JAVA内存模型，不存在的东西，是一个概念，也是一个约定！==
+
+**关于JMM的一些同步的约定：**
+
+- 线程解锁前，必须把共享变量**立刻**刷回主存；
+- 线程加锁前，必须**读取主存**中的最新值到工作内存中；
+- 加锁和解锁是同一把锁；
+
+线程修改的东西实际上是主内存中复制到线程工作内存中的值，故当解锁后，需要将共享变量刷回去。
+
+**8种操作:**
+
+- Read（读取）：作用于主内存变量，它把一个变量的值从主内存传输到线程的工作内存中，以便随后的load动作使用；
+
+- load（载入）：作用于工作内存的变量，它把read操作从主存中变量放入工作内存中；
+
+- Use（使用）：作用于工作内存中的变量，它把工作内存中的变量传输给执行引擎，每当虚拟机遇到一个需要使用到变量的值，就会使用到这个指令；
+
+- assign（赋值）：作用于工作内存中的变量，它把一个从执行引擎中接受到的值放入工作内存的变量副本中；
+
+- store（存储）：作用于主内存中的变量，它把一个从工作内存中一个变量的值传送到主内存中，以便后续的write使用；
+
+- write（写入）：作用于主内存中的变量，它把store操作从工作内存中得到的变量的值放入主内存的变量中；
+
+- lock（锁定）：作用于主内存的变量，把一个变量标识为线程独占状态；
+
+- unlock（解锁）：作用于主内存的变量，它把一个处于锁定状态的变量释放出来，释放后的变量才可以被其他线程锁定；
+
+
+
+![image-20240330145847869](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240330145847869.png)
+
+```java
+public class Test_Volatile {
+    //静态变量是类级别的变量，对于 lambda 表达式来说，它们在语义上是等同于 final 的，因为它们在整个类的生命周期中是不变的
+    private  static  int num=0;
+    public static void main(String[] args) throws InterruptedException {
+        new Thread(()->{
+            while(num==0){
+            }
+        }).start();
+
+        TimeUnit.SECONDS.sleep(1);
+        num=1;
+        System.out.println(num);
+    }
+}
+```
+
+**明明已经修改了num，但程序还是卡死在那**
+
+![image-20240330150529128](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240330150529128.png)
+
+### Volatile
+
+#### 可见性
+
+```java
+public class Test_Volatile {
+    //静态变量是类级别的变量，对于 lambda 表达式来说，它们在语义上是等同于 final 的，因为它们在整个类的生命周期中是不变的
+    private static volatile int num=0;
+    public static void main(String[] args) throws InterruptedException {
+        new Thread(()->{
+            while(num==0){
+            }
+        }).start();
+
+        TimeUnit.SECONDS.sleep(1);
+        num=1;
+        System.out.println(num);
+    }
+}
+```
+
+加上这个关键字就可以就可以实现可见性
+
+#### 不保证原子性
+
+当只有单个读写时，没有出现问题，但多个线程同时写呢？仅仅依靠Volatile可以保证安全吗？
+
+```java
+public class Test_Volatile2 {
+    private static volatile int num = 0;
+    private static void add() {
+        num++;
+    }
+    public static void main(String[] args) {
+        for (int i = 0; i < 20; i++) {
+            new Thread(() -> {
+                for (int j = 0; j < 1000; j++) {
+                    add();
+                }
+            }).start();
+        }
+
+        while(Thread.activeCount() > 2) {
+            //java有main和gc两个默认线程
+            Thread.yield();
+        }
+        System.out.println(Thread.currentThread().getName()+" num: "+num);
+    }
+}
+```
+
+```
+main num: 19526
+```
+
+发现 volatile 不能保证正确的相加，这说明volatile不保证原子性
+
+我们可以通过lock和synchronized 保证正确相加
+
+**如果不加lock和synchronized ，怎么样保证原子性？**
+
+![image-20200812215844788](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/db6345f3804fe7e529cdb71771c8e2f9.png)
+
+**可以使用原子类**
+
+![img](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/2f3fbaf1a7d0705813f1388665cebfab.png)
+
+```java
+public class Test_Volatile2 {
+    private static AtomicInteger num = new AtomicInteger(0);
+    private static void add() {//底层是 CAS 保证的原子性
+        num.getAndIncrement();
+    }
+    public static void main(String[] args) {
+        for (int i = 0; i < 20; i++) {
+            new Thread(() -> {
+                for (int j = 0; j < 1000; j++) {
+                    add();
+                }
+            }).start();
+        }
+
+        while(Thread.activeCount() > 2) {
+            //java有main和gc两个默认线程
+            Thread.yield();
+        }
+        System.out.println(Thread.currentThread().getName()+" num: "+num);
+    }
+}
+```
+
+这些类的底层都直接和操作系统挂钩！是在内存中修改值。
+
+```java
+public final int getAndIncrement() {
+    return unsafe.getAndAddInt(this, valueOffset, 1);
+}
+public final int getAndAddInt(Object var1, long var2, int var4) {
+    int var5;
+    do {
+        var5 = this.getIntVolatile(var1, var2);
+    } while(!this.compareAndSwapInt(var1, var2, var5, var5 + var4));
+
+    return var5;
+}
+
+public native int getIntVolatile(Object var1, long var2);
+public final native boolean compareAndSwapInt(Object var1, long var2, int var4, int var5);
+```
+
+最后都是调用的native方法
+
+#### 禁止指令重排
+
+**什么是指令重排？**
+
+我们写的程序，计算机并不是按照我们自己写的那样去执行的
+
+- 源代码
+- 编译器优化重排
+- 指令并行也可能会重排
+- 内存系统也会重排
+- 执行
+
+**处理器在进行指令重排的时候，会考虑数据之间的依赖性！**
+
+```java
+int x=1; //1
+int y=2; //2
+x=x+5;   //3
+y=x*x;   //4
+
+//我们期望的执行顺序是 1234  可能执行的顺序会变成2134 1324
+//可不可能是 4123？ 不可能的
+```
+
+前提：a b x y这四个值 默认都是0
+
+| 线程A | 线程B |
+| ----- | ----- |
+| x=a   | y=b   |
+| b=1   | a=2   |
+
+正常的结果： **x = 0   y =0**
+
+| 线程A | 线程B |
+| ----- | ----- |
+| b=1   | a=2   |
+| x=a   | y=b   |
+
+可能在线程A中会出现，先执行b=1,然后再执行x=a；
+
+在B线程中可能会出现，先执行a=2，然后执行y=b；
+
+那么就有可能结果如下：**x=2   y=1**
+
+**volatile可以避免指令重排：volatile中会加一道内存的屏障，这个内存屏障可以保证在这个屏障中的指令顺序。**
+
+内存屏障：CPU指令。
+
+作用：
+
+- 保证特定的操作的执行顺序；
+- 可以保证某些变量的内存可见性（利用这些特性，就可以保证volatile实现的可见性）
+
+![image-20200812220019582](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/85fa53d83ee4f89d5a7202e9e5a98987.png)
+
+**总结**
+
+- **volatile可以保证可见性；**
+- **不能保证原子性**
+- **由于内存屏障，可以保证避免指令重排的现象产生**
+
+在哪里用这个内存屏障用得最多呢？**单例模式**
+
+### 单例模式
 
