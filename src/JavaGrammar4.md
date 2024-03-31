@@ -2438,3 +2438,826 @@ y=x*x;   //4
 
 ### 单例模式
 
+单例模式是一种设计模式，它保证一个类只有一个实例，并提供一个全局访问点来访问该实例。
+
+**在单例模式中，类的实例化过程被限制在类的内部，而外部无法直接实例化该类，只能通过特定的方法获取到该类的唯一实例。**
+
+单例模式通常用于需要在**整个应用程序中共享一个资源或对象的场景**，例如数据库连接池、线程池、日志记录器等。通过使用单例模式，可以确保全局只有一个实例存在，从而**节省系统资源并且避免不必要的对象创建**。
+
+单例模式的实现方式通常有以下几种
+
+#### 饿汉式
+
+```java
+//饿汉式单例 一上来就new一个
+public class Hungry {
+    //当饿汉式单例有一些数组之类，一上来就创建，但没有实际使用，会浪费空间
+    private byte[] data1=new byte[1024*1024];
+    private byte[] data2=new byte[1024*1024];
+    private byte[] data3=new byte[1024*1024];
+    private byte[] data4=new byte[1024*1024];
+    
+    private Hungry(){}
+    private static final Hungry hungry = new Hungry();
+
+    public static Hungry getInstance(){
+        return hungry;
+    }
+}
+```
+
+#### 懒汉式
+
+```java
+//常见懒汉式，用时再创建
+public class LazyMan {
+    private LazyMan() {
+
+    }
+    private static LazyMan lazyMan;
+
+    public static LazyMan getInstance(){
+        if(lazyMan == null){
+            lazyMan = new LazyMan();
+        }
+        return lazyMan; 
+    }
+}
+```
+
+**有一个问题多线程时还安全吗？**
+
+```java
+public class LazyMan {
+    private LazyMan() {
+        System.out.println(Thread.currentThread().getName()+"我是懒汉式单例");
+    }
+    private static LazyMan lazyMan;
+
+    public static LazyMan getInstance(){
+        if(lazyMan == null){
+            lazyMan = new LazyMan();
+        }
+        return lazyMan;
+    }
+
+    public static void main(String[] args) {
+        for (int i = 0; i < 10; i++) {
+            new Thread(() -> LazyMan.getInstance()).start();
+        }
+    }
+}
+
+```
+
+```
+Thread-0我是懒汉式单例
+Thread-3我是懒汉式单例
+Thread-2我是懒汉式单例
+Thread-1我是懒汉式单例
+```
+
+发现执行了多次，**多线程不安全！！！**
+
+#### 双重检查锁
+
+***双重检测锁模式 简称DCL懒汉式*** 解决多线程不安全
+
+```java
+public class DCL_LazyMan {
+    private DCL_LazyMan() {
+        System.out.println(Thread.currentThread().getName()+"我是DCL懒汉式单例");
+    }
+    private static DCL_LazyMan dcl_lazyMan;
+
+    public static DCL_LazyMan getInstance(){
+        if(dcl_lazyMan == null){ //第一次检查 避免多个线程同时进入同步代码，减少性能开销
+            synchronized (DCL_LazyMan.class){
+                if(dcl_lazyMan == null){ //确保多线程环境下只创建一个实例
+                    dcl_lazyMan = new DCL_LazyMan();
+                }
+            }
+        }
+        return dcl_lazyMan;
+    }
+
+    public static void main(String[] args) {
+        for (int i = 0; i < 10; i++) {
+            new Thread(() -> DCL_LazyMan.getInstance()).start();
+        }
+    }
+}
+```
+
+但现在仍然存在问题，之前学过 Volatile ，里面有一个指令重排的概念，我们可以发现 `dcl_lazyMan = new DCL_LazyMan();`并不是一个原子性的操作。
+
+具体来说该行代码会如下执行:
+
+- 1 分配内存空间
+- 2 执行构造方法，初始化对象
+- 3 把这个对象指向这个空间
+
+- 这就有可能出现指令重排问题，比如执行的顺序是1 3 2 等
+- 我们就可以添加volatile保证指令重排问题
+
+双重检查锁模式在 JDK 1.5 之后才能正确工作，之前的版本存在指令重排序的问题，可能会导致多线程环境下创建多个实例的问题。通过将 `instance` 变量声明为 `volatile`，可以防止指令重排序，确保多线程环境下的安全性。
+
+```java
+private static volatile DCL_LazyMan dcl_lazyMan;
+```
+
+再思考一个问题，现在就一定安全了吗？**反射也会导致不安全！**
+
+```java
+public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    DCL_LazyMan instance = DCL_LazyMan.getInstance();
+    
+    Constructor<DCL_LazyMan> declaredConstructor = DCL_LazyMan.class.getDeclaredConstructor(null);
+    declaredConstructor.setAccessible(true);//因为构造方法私有，所以设置可访问为true
+    
+    DCL_LazyMan instance2 = declaredConstructor.newInstance();
+    
+    System.out.println(instance);
+    System.out.println(instance2);
+}
+```
+
+```
+main我是DCL懒汉式单例
+main我是DCL懒汉式单例
+com.balance.single.DCL_LazyMan@74a14482
+com.balance.single.DCL_LazyMan@1540e19d
+```
+
+**发现创建了两个对象，所以反射的情况下依旧不安全**
+
+如何解决呢？第一步，因为反射是通过构造器创建，我们在构造器方法中去判断当前是否为空，不为空抛出异常
+
+```java
+private DCL_LazyMan() {
+    synchronized (DCL_LazyMan.class){
+        if(dcl_lazyMan != null){
+            throw new RuntimeException("不要试图使用反射破坏单例");
+        }else{
+            System.out.println(Thread.currentThread().getName()+"我是DCL懒汉式单例");
+        }
+    }
+}
+```
+
+```
+main我是DCL懒汉式单例
+Caused by: java.lang.RuntimeException: 不要试图使用反射破坏单例
+```
+
+发现成功解决，**新的问题，我不去正常获得对象，两个对象都是反射创建会怎么样**
+
+```java
+public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    Constructor<DCL_LazyMan> declaredConstructor = DCL_LazyMan.class.getDeclaredConstructor(null);
+    declaredConstructor.setAccessible(true);//因为构造方法私有，所以设置可访问为true
+    //两个对象都是反射创建
+    DCL_LazyMan instance = declaredConstructor.newInstance();
+    DCL_LazyMan instance2 = declaredConstructor.newInstance();
+    
+    System.out.println(instance);
+    System.out.println(instance2);
+}
+```
+
+```java
+main我是DCL懒汉式单例
+main我是DCL懒汉式单例
+com.balance.single.DCL_LazyMan@74a14482
+com.balance.single.DCL_LazyMan@1540e19d
+```
+
+又不安全了，**依旧创建了两个对象**
+
+如何解决？**我们可以创建一个标志变量，来标志是否被创建**
+
+```java
+private static boolean flag = true;
+private DCL_LazyMan() {
+    synchronized (DCL_LazyMan.class){
+        if(flag){
+            flag = false;
+        }else {
+            throw new RuntimeException("不要试图使用反射破坏单例");
+        }
+    }
+}
+```
+
+```
+Caused by: java.lang.RuntimeException: 不要试图使用反射破坏单例
+	at com.balance.single.DCL_LazyMan.<init>(DCL_LazyMan.java:14)
+	... 5 more
+```
+
+发现解决了，**但是这个字段我们也可以通过反射去获得呀，我们用反射设置这个字段不就又不安全了吗**
+
+```java
+public static void main(String[] args) throws Exception {
+    Field flag1 = DCL_LazyMan.class.getDeclaredField("flag");
+    flag1.setAccessible(true);
+    Constructor<DCL_LazyMan> declaredConstructor = DCL_LazyMan.class.getDeclaredConstructor(null);
+    declaredConstructor.setAccessible(true);//因为构造方法私有，所以设置可访问为true
+    //我们在创建了一个对象之后，更改标志位
+    DCL_LazyMan instance = declaredConstructor.newInstance();
+    flag1.set(instance,true);
+
+    DCL_LazyMan instance2 = declaredConstructor.newInstance();
+
+    System.out.println(instance);
+    System.out.println(instance2);
+}
+```
+
+```
+com.balance.single.DCL_LazyMan@1540e19d
+com.balance.single.DCL_LazyMan@677327b6
+```
+
+正如我们所料，又不安全了，又创建了两个对象 
+
+***道高一尺 魔高一丈***
+
+究竟如何解决，看反射创建对象的 newInstance方法源码
+
+![image-20240331110043456](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240331110043456.png)
+
+#### 静态内部类
+
+```java
+//静态内部类实现
+public class StaticSingle {
+    private StaticSingle(){}
+
+    public static StaticSingle getInstance(){
+        return InnerClass.staticSingle;//使用时调用静态内部类创建的对象
+    } 
+    public static class InnerClass{
+        private static final StaticSingle staticSingle = new StaticSingle();
+    }
+}
+```
+
+#### 枚举
+
+- 枚举默认为单例模式
+- 枚举本身也是一个类
+
+```java
+// 枚举默认单例模式
+// 枚举本身也是一个类
+public enum Single_Enum {
+    //枚举的实例
+    INSTANCE;
+
+    public Single_Enum getInstance(){
+        return INSTANCE;
+    }
+}
+
+class Test{
+    public static void main(String[] args) {
+        Single_Enum single_Enum = Single_Enum.INSTANCE;
+        Single_Enum single_Enum2 = Single_Enum.INSTANCE;
+        System.out.println(single_Enum == single_Enum2);
+    }
+}
+```
+
+尝试一下用反射破坏 在target目录下查看编译后的class文件
+
+```java
+public enum Single_Enum {
+    INSTANCE;
+
+    private Single_Enum() {
+    }
+
+    public Single_Enum getInstance() {
+        return INSTANCE;
+    }
+}
+```
+
+发现有一个默认的构造方法，反射爆破它
+
+```java
+class Test{
+    public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Single_Enum instance = Single_Enum.INSTANCE;
+
+        Constructor<Single_Enum> declaredConstructor = Single_Enum.class.getDeclaredConstructor(null);
+        declaredConstructor.setAccessible(true);
+
+        Single_Enum instance1 = declaredConstructor.newInstance();
+
+        System.out.println(instance);
+        System.out.println(instance1);
+
+    }
+}
+```
+
+```
+Exception in thread "main" java.lang.NoSuchMethodException: com.balance.single.Single_Enum.<init>()
+```
+
+发现抛出没有此方法的异常，说明 idea 给出的 Class 文件不正确，明明没有该方法
+
+使用 `javap -p Single_Enum.class` 去反编译一下
+
+![image-20240331110919893](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240331110919893.png)
+
+**说明依旧不对，java隐藏了具体实现，因为程序运行结果不会骗我们**
+
+使用 jad 工具再次去反编译 得到真正的实现
+
+```java
+public final class EnumSingle extends Enum //可以发现枚举的确是类
+{
+
+    public static EnumSingle[] values()
+    {
+        return (EnumSingle[])$VALUES.clone();
+    }
+
+    public static EnumSingle valueOf(String name)
+    {
+        return (EnumSingle)Enum.valueOf(com/ogj/single/EnumSingle, name);
+    }
+
+    private EnumSingle(String s, int i)//这才是实际的构造方法
+    {
+        super(s, i);
+    }
+
+    public EnumSingle getInstance()
+    {
+        return INSTANCE;
+    }
+
+    public static final EnumSingle INSTANCE;
+    private static final EnumSingle $VALUES[];
+
+    static 
+    {
+        INSTANCE = new EnumSingle("INSTANCE", 0);
+        $VALUES = (new EnumSingle[] {
+            INSTANCE
+        });
+    }
+}
+```
+
+更改反射的构造器
+
+```java
+class Test{
+    public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Single_Enum instance = Single_Enum.INSTANCE;
+
+        Constructor<Single_Enum> declaredConstructor = Single_Enum.class.getDeclaredConstructor(String.class,int.class);
+        declaredConstructor.setAccessible(true);
+
+        Single_Enum instance1 = declaredConstructor.newInstance();
+
+        System.out.println(instance);
+        System.out.println(instance1);
+
+    }
+}
+```
+
+```java
+Exception in thread "main" java.lang.IllegalArgumentException: Cannot reflectively create enum objects
+```
+
+**抛出了正确的异常，即 newInstance方法中说明的异常 ，不能使用反射去创建枚举对象**
+
+### 深入理解CAS
+
+*CAS : compareAndSet 比较并交换*
+
+```java
+public class CAS_Test {
+    public static void main(String[] args) {
+        AtomicInteger atomicInteger = new AtomicInteger(2024);
+        //boolean compareAndSet(int expect, int update)
+        //期望值、更新值
+        //如果实际值 和 我的期望值相同，那么就更新
+        //如果实际值 和 我的期望值不同，那么就不更新
+        System.out.println(atomicInteger.compareAndSet(2024, 2025));
+        //因为期望值是2020  实际值却变成了2021  所以会修改失败
+        //CAS 是CPU的并发原语
+        System.out.println(atomicInteger.compareAndSet(2024, 2025));
+    }
+}
+```
+
+```
+true
+false
+```
+
+我们知道  `atomicInteger.getAndIncrement` 实际上调用了 unsafe 的 getAndAddInt方法
+
+```java
+public final int getAndIncrement() {
+    return unsafe.getAndAddInt(this, valueOffset, 1);
+}
+```
+
+该方法三个参数如下
+
+* this：当前对象
+
+* valueOffset：**内存偏移**
+
+  * ```java
+    private static final long valueOffset;
+    
+    static {
+        try {
+            valueOffset = unsafe.objectFieldOffset
+                (AtomicInteger.class.getDeclaredField("value"));
+        } catch (Exception ex) { throw new Error(ex); }
+    }
+    ```
+
+* 增加的值 也就是 1
+
+该方法具体实现：
+
+```java
+public final int getAndAddInt(Object var1, long var2, int var4) {
+    int var5;
+    do {
+        var5 = this.getIntVolatile(var1, var2);
+    } while(!this.compareAndSwapInt(var1, var2, var5, var5 + var4));
+
+    return var5;
+}
+```
+
+`var1` 就是调用的对象，`var2`就是内存偏移值 ,`var4`就是增加的值 1
+
+首先调用了 `getIntVolatile` 方法，传入了调用对象，和内存偏移值
+
+```java
+public native int getIntVolatile(Object var1, long var2);
+```
+
+这是一个本地方法，实质就是计算新的地址,取新地址中的值
+
+然后调用 `compareAndSwapInt`方法，这也是一个CAS操作，具体来说 
+
+* 期望  var1, var2 可以计算出 var5
+* 若可以 var5 + var4(1)
+
+可以看到这是一个`do while`循环，这是自旋锁
+
+**总结**
+
+CAS：比较当前工作内存中的值和主内存中的值，如果这个值是期望的，那么则执行操作！如果不是就一直循环，使用的是自旋锁。
+
+**缺点：**
+
+- 循环会耗时；
+- 一次性只能保证一个共享变量的原子性；
+- 它会**存在ABA问题**
+
+### 原子引用
+
+**什么是ABA问题？** 狸猫换太子
+
+![img](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/4b9db8d951df5271f214561766442910.png)
+
+线程1：期望值是1，要变成2；
+
+线程2：两个操作：
+
+- 1、期望值是1，变成3
+- 2、期望是3，变成1
+
+所以对于线程1来说，A的值还是1，所以就出现了问题，其实中间有过更改，但被隐藏了
+
+```java
+public class casDemo {
+    //CAS : compareAndSet 比较并交换
+    public static void main(String[] args) {
+        AtomicInteger atomicInteger = new AtomicInteger(2020);
+		
+        // B更改并更改回原来
+        System.out.println(atomicInteger.compareAndSet(2020, 2021));
+        System.out.println(atomicInteger.get());
+        System.out.println(atomicInteger.compareAndSet(2021, 2020));
+        System.out.println(atomicInteger.get());
+
+		//A更改
+        System.out.println(atomicInteger.compareAndSet(2020, 2021));
+        System.out.println(atomicInteger.get());
+    }
+}
+
+```
+
+如何解决这个问题？ **乐观锁**
+
+**所谓的原子引用，其实就是带版本号（乐观锁）的 原子操作！**
+
+*Integer 使用了对象缓存机制，默认范围是-128~127，推荐使用静态工厂方法valueOf获取对象实例，而不是new，因为valueOf使用缓存，而new一定会创建新的对象分配新的内存空间。*
+
+![image-20200812220608094](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/f0fa8dc692d7e89523bc334bebc58f15.png)
+
+```java
+public class CAS_Test {
+    public static void main(String[] args) {
+        //AtomicStampedReference 注意，如果泛型是一个包装类，注意对象的引用问题
+        //Interger有缓存的问题
+        //正常在业务操作，这里面比较的都是一个个对象
+        AtomicStampedReference<Integer> atomicStampedReference = new AtomicStampedReference<>(1, 1);
+
+        new Thread(() -> {
+            int stamp=atomicStampedReference.getStamp();
+            //获得 a1 的stamp
+            System.out.println("a1=>"+stamp);
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println(atomicStampedReference.compareAndSet(1, 2,
+                    atomicStampedReference.getStamp(), atomicStampedReference.getStamp() + 1));
+            //获得 a2 的stamp
+            System.out.println("a2=>"+atomicStampedReference.getStamp());
+
+            System.out.println(atomicStampedReference.compareAndSet(2, 1,
+                    atomicStampedReference.getStamp(), atomicStampedReference.getStamp() + 1));
+            //获得 a3 的stamp
+            System.out.println("a3=>"+atomicStampedReference.getStamp());
+        }).start();
+
+        new Thread(() -> {
+            int stamp=atomicStampedReference.getStamp();
+            //获得 b1 的stamp
+            System.out.println("b1=>"+stamp);
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            }catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println(atomicStampedReference.compareAndSet(1, 3,
+                    atomicStampedReference.getStamp(), atomicStampedReference.getStamp() + 1));
+            //获得 b2 的stamp
+            System.out.println("b2=>"+atomicStampedReference.getStamp());
+        }).start();
+
+    }
+}
+```
+
+**主要就是为了判断是不是中间有更改**
+
+### 各种锁的理解
+
+#### 公平锁/非公平锁
+
+* 公平锁：非常公平，不能插队，必须先来后到
+* 非公平锁：不公平，允许插队，可以改变顺序
+
+#### 可重入锁
+
+* 可重入锁（Reentrant Lock）是一种支持重入（**拿到外面的锁就可以拿到里面的锁**）的锁机制，也称为**递归锁**。
+
+- 在可重入锁中，每个线程都维护着一个持有锁的计数器，当线程第一次获得锁时，计数器会加一，每次进入同步代码块时计数器都会递增；
+- 当退出同步代码块时，计数器会递减。只有当计数器为零时，锁才会完全释放，其他线程才能获得锁。
+
+Synchonized 锁
+
+```java
+public class Demo01 {
+    public static void main(String[] args) {
+        Phone phone = new Phone();
+        new Thread(()->{
+            phone.sms();
+        },"A").start();
+        new Thread(()->{
+            phone.sms();
+        },"B").start();
+    }
+
+}
+
+class Phone{
+    public synchronized void sms(){
+        System.out.println(Thread.currentThread().getName()+"=> sms");
+        call();//这里也有一把锁
+    }
+    public synchronized void call(){
+        System.out.println(Thread.currentThread().getName()+"=> call");
+    }
+}
+```
+
+Lock 锁
+
+```java
+public class Demo02 {
+
+    public static void main(String[] args) {
+        Phone2 phone = new Phone2();
+        new Thread(()->{
+            phone.sms();
+        },"A").start();
+        new Thread(()->{
+            phone.sms();
+        },"B").start();
+    }
+
+}
+class Phone2{
+
+    Lock lock=new ReentrantLock();
+
+    public void sms(){
+        lock.lock(); //细节：这个是两把锁，两个钥匙
+        //lock锁必须配对，否则就会死锁在里面
+        try {
+            System.out.println(Thread.currentThread().getName()+"=> sms");
+            call();//这里也有一把锁
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            lock.unlock();
+        }
+    }
+    public void call(){
+        lock.lock();
+        try {
+            System.out.println(Thread.currentThread().getName() + "=> call");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        finally {
+            lock.unlock();
+        }
+    }
+}
+```
+
+#### 自旋锁
+
+- 自旋锁（Spin Lock）是一种非阻塞锁，它的工作方式是在获取锁时不会立即进入阻塞状态，而是采用自旋的方式反复尝试获取锁，直到成功获取为止。
+- 自旋锁**适用于短时间内锁的竞争情况，当锁的持有者释放锁后，其他线程就可以立即获得锁，而无需进入阻塞状态**，从而提高了并发性能。
+
+spin lock(自旋锁) 之前在 AtomicInteger 的 getAndIncrement 方法中就已经见识了自旋锁
+
+```java
+public final int getAndAddInt(Object var1, long var2, int var4) {
+    int var5;
+    do {
+        var5 = this.getIntVolatile(var1, var2);
+    } while(!this.compareAndSwapInt(var1, var2, var5, var5 + var4));
+    return var5;
+}
+```
+
+设计自旋锁
+
+```java
+public class SpinlockDemo {
+
+    // 默认
+    // int 0
+    //thread null
+    AtomicReference<Thread> atomicReference=new AtomicReference<>();
+
+    //加锁
+    public void myLock(){
+        Thread thread = Thread.currentThread();
+        System.out.println(thread.getName()+"===> mylock");
+
+        //自旋锁
+        while (!atomicReference.compareAndSet(null,thread)){
+            System.out.println(Thread.currentThread().getName()+" ==> 自旋中~");
+        }
+    }
+
+
+    //解锁
+    public void myUnlock(){
+        Thread thread=Thread.currentThread();
+        System.out.println(thread.getName()+"===> myUnlock");
+        atomicReference.compareAndSet(thread,null);
+    }
+
+}
+```
+
+```java
+public class TestSpinLock {
+    public static void main(String[] args) throws InterruptedException {
+        ReentrantLock reentrantLock = new ReentrantLock();
+        reentrantLock.lock();
+        reentrantLock.unlock();
+
+
+        //使用CAS实现自旋锁
+        SpinlockDemo spinlockDemo=new SpinlockDemo();
+        new Thread(()->{
+            spinlockDemo.myLock();
+            try {
+                TimeUnit.SECONDS.sleep(3);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                spinlockDemo.myUnlock();
+            }
+        },"t1").start();
+
+        TimeUnit.SECONDS.sleep(1);
+
+
+        new Thread(()->{
+            spinlockDemo.myLock();
+            try {
+                TimeUnit.SECONDS.sleep(3);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                spinlockDemo.myUnlock();
+            }
+        },"t2").start();
+    }
+}
+```
+
+运行结果：
+
+**t2进程必须等待t1进程Unlock后，才能Unlock，在这之前进行自旋**
+
+#### 死锁
+
+**怎么排除死锁？**
+
+```java
+package com.ogj.lock;
+
+import java.util.concurrent.TimeUnit;
+
+public class DeadLock {
+    public static void main(String[] args) {
+        String lockA= "lockA";
+        String lockB= "lockB";
+		//将 A B 互换位置，造成死锁现象
+        new Thread(new MyThread(lockA,lockB),"t1").start();
+        new Thread(new MyThread(lockB,lockA),"t2").start();
+    }
+}
+
+class MyThread implements Runnable{
+
+    private String lockA;
+    private String lockB;
+
+    public MyThread(String lockA, String lockB) {
+        this.lockA = lockA;
+        this.lockB = lockB;
+    }
+
+    @Override
+    public void run() {
+        synchronized (lockA){//拿到A的锁之后继续尝试拿B的锁
+            System.out.println(Thread.currentThread().getName()+" lock"+lockA+"===>get"+lockB);
+            try {
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            synchronized (lockB){
+                System.out.println(Thread.currentThread().getName()+" lock"+lockB+"===>get"+lockA);
+            }
+        }
+    }
+}
+```
+
+如何解开死锁
+
+**1、使用jps定位进程号，jdk的bin目录下： 有一个jps.exe**
+
+![image-20200812214833647](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/32b977206fd43d9cd67cf7bf432b13e6.png)
+
+**2、使用`jstack.exe` +进程号 找到死锁信息**
+
+![image-20200812214920583](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/e56c37006badbc1bbbae99dba5438172.png)
+
+**一般情况信息在最后：**
+
+![image-20200812214957930](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/814d63935d3d21ed799afcc2eccd20c9.png)
+
