@@ -85,6 +85,13 @@ String s2="12345";
 Integer i1 = Integer.parseInt(s2);
 //方式二
 Integer i2 = new Integer(s2);
+
+
+//数组排序
+Integer[] array = {1, 2, 3};
+Arrays.sort(array,Comparator.reverseOrder());//降序排列
+Arrays.sort(array,Comparator.naturalOrder());//自然升序
+Arrays.sort(array);//默认升序
 ```
 ## StringBuffer
 java.lang.StringBuffer代表**可变的字符序列**，可以对字符串内容进行增删。  
@@ -319,6 +326,9 @@ Map中key可以为空但仅有一个，value可以为空但有多个
 Map map = new HashMap();
 map.put("no1","hhh");
 map.get("no1"); 
+
+// 该方法试图查找键对应的值，若存在返回对应值，若不存在返回默认值
+map.getOrDefault(key,defaultValue)
 ```
 为方便程序员遍历，创建entrySet集合，集合里存放Entry  
 keySet:获取所有键key  

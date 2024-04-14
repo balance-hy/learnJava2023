@@ -1859,6 +1859,8 @@ public ThreadPoolExecutor(int corePoolSize,//核心线程数
 
 ![image-20240329123345076](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240329123345076.png)
 
+**当程序尝试分配更多的内存，但系统的可用内存已经不足时，就会导致OOM错误(Out of Memory 内存耗尽或内存溢出)**
+
 ```java
 public class Demo02_SevenParm {
 
