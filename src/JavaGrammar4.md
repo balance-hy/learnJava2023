@@ -1381,9 +1381,12 @@ public class Test07_Map {
 **ConcurrentHashMap**:
 
 - `ConcurrentHashMap` 是 Java 并发包中提供的线程安全的哈希表实现。
-- 它**通过分段锁（Segment Locking）来实现并发访问，即将整个哈希表分成多个段（Segment），每个段拥有自己的锁。**
-- 在并发环境下，`ConcurrentHashMap` 提供了较好的性能和可伸缩性，多个线程可以同时读取、更新、插入和删除元素而不需要额外的同步措施。
-- 由于 `ConcurrentHashMap` 的设计，不会抛出 `ConcurrentModificationException` 异常，因为它允许在迭代过程中修改集合。
+- JDK1.7底层采用分段的数组+链表实现
+- JDK1.8采用的数据结构跟HashMap1.8的结构一样，数组+链表/红黑二叉树
+- 加锁的方式
+  - JDK1.7采用Segment分段锁，底层使用的是ReentrantLock
+  - **JDK1.8采用CAS添加新节点，采用synchronized锁定链表或红黑二叉树的首节点，相对Segment分段锁粒度更细，性能更好**
+
 
 ### callable
 
@@ -1445,7 +1448,7 @@ public class Test09_CountDownLatch {
 - countDown 减一操作；
 - await 等待计数器归零
 
-await 等待计数器归零，就唤醒，再继续向下运行
+await 等待计数器归零，归零就唤醒，再继续向下运行
 
 #### CyclicBarrier 加法
 
@@ -1524,32 +1527,31 @@ public class Test12_ReadWriteLock {
     public static void main(String[] args) {
         MyCache myCache = new MyCache();
         for (int i = 0; i < 5; i++) {
-            final int tempInt = i;
+            int j = i;
             new Thread(() -> {
-                myCache.write(tempInt + "", tempInt + "");
-            }, String.valueOf(i)).start();
+                myCache.put("key" + j, "value" + j);
+            },"Thread"+i).start();
         }
         for (int i = 0; i < 5; i++) {
-            final int tempInt = i;
+            int j = i;
             new Thread(() -> {
-                myCache.read(tempInt + "");
-            }, String.valueOf(i)).start();
+                myCache.get("key" + j);
+            },"Thread"+i).start();
         }
     }
 }
 class MyCache{
-    private volatile Map<String,String> map=new HashMap<>();
+    private volatile Map<String, Object> map = new HashMap<>();
 
-    public void write(String key,String value){
-        System.out.println(Thread.currentThread().getName()+"写入开始");
+    public void put(String key, Object value){
+        System.out.println(Thread.currentThread().getName()+" 开始写入");
         map.put(key, value);
-        System.out.println(Thread.currentThread().getName()+"写入结束");
-
+        System.out.println(Thread.currentThread().getName()+" 写入完成");
     }
-    public void read(String key){
-        System.out.println(Thread.currentThread().getName()+"读取开始");
+    public void get(String key){
+        System.out.println(Thread.currentThread().getName()+" 开始读取");
         map.get(key);
-        System.out.println(Thread.currentThread().getName()+"读取结束");
+        System.out.println(Thread.currentThread().getName()+" 读取完成");
     }
 }
 ```
@@ -1609,7 +1611,7 @@ class MyCache{
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            readWriteLock.readLock().lock();//解锁
+            readWriteLock.readLock().unlock();//解锁
         }
     }
 }
@@ -1778,7 +1780,7 @@ public class Test14_SynchronousQueue {
 
 ### 线程池
 
-线程池：三大方式、七大参数、四种拒绝策略
+线程池：三大方法、七大参数、四种拒绝策略
 
 > 池化技术
 
@@ -1801,7 +1803,7 @@ public class Test14_SynchronousQueue {
 
 ==线程复用、可以控制最大并发数、管理线程==
 
-#### 三大方法
+#### 三大方法-常用
 
 ```java
 public class Demo01_ThreeFunc {
@@ -1819,6 +1821,19 @@ public class Demo01_ThreeFunc {
     }
 }
 ```
+
+实际上还有两个方法
+
+* newWorkStealingPool  底层是 forkjoinpool
+
+* newScheduledThreadPool 底层用了 DelayedWorkQueue
+
+  ```java
+  super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS,
+                new DelayedWorkQueue());
+  ```
+
+![image-20240427162238339](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240427162238339.png)
 
 #### 七大参数
 
@@ -2289,6 +2304,8 @@ public class Test_Volatile {
 #### 不保证原子性
 
 当只有单个读写时，没有出现问题，但多个线程同时写呢？仅仅依靠Volatile可以保证安全吗？
+
+> 举例来说，如果一个变量的更新操作涉及读取、修改和写入三个步骤，而这些步骤之间没有被同步控制，那么即使这个变量被声明为 `volatile`，其他线程仍然有可能在这些步骤之间插入自己的操作，导致最终结果出现异常。
 
 ```java
 public class Test_Volatile2 {
@@ -2854,7 +2871,7 @@ public class CAS_Test {
         //如果实际值 和 我的期望值相同，那么就更新
         //如果实际值 和 我的期望值不同，那么就不更新
         System.out.println(atomicInteger.compareAndSet(2024, 2025));
-        //因为期望值是2020  实际值却变成了2021  所以会修改失败
+        //因为期望值是2024  实际值却变成了2025  所以会修改失败
         //CAS 是CPU的并发原语
         System.out.println(atomicInteger.compareAndSet(2024, 2025));
     }
@@ -2930,7 +2947,7 @@ CAS：比较当前工作内存中的值和主内存中的值，如果这个值�
 **缺点：**
 
 - 循环会耗时；
-- 一次性只能保证一个共享变量的原子性；
+- **一次性只能保证一个共享变量的原子性；**
 - 它会**存在ABA问题**
 
 ### 原子引用
