@@ -93,7 +93,16 @@ Arrays.sort(array,Comparator.reverseOrder());//降序排列
 Arrays.sort(array,Comparator.naturalOrder());//自然升序
 Arrays.sort(array);//默认升序
 ```
+在 Java 中，`String` 对象的比较大小通常使用 `compareTo()` 方法。该方法比较两个字符串的字典顺序，并返回一个整数值，表示两个字符串的大小关系。
+
+- 如果字符串相等，`compareTo()` 返回值为 0。
+- 如果调用字符串按字典顺序排在参数字符串之前，则返回值为负数。
+- 如果调用字符串按字典顺序排在参数字符串之后，则返回值为正数。
+
+此外，Java 中的 `String` 类还提供了 `compareToIgnoreCase()` 方法，该方法在比较字符串时会忽略大小写。
+
 ## StringBuffer
+
 java.lang.StringBuffer代表**可变的字符序列**，可以对字符串内容进行增删。  
 很多方法和String相同，但StringBuffer是可变长度的(继承了AbstractStringBuilder,该类有属性
 char[] value,而数组是存放在堆中，所以可以修改)  

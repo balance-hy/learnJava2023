@@ -1386,6 +1386,7 @@ public class Test07_Map {
 - 加锁的方式
   - JDK1.7采用Segment分段锁，底层使用的是ReentrantLock
   - **JDK1.8采用CAS添加新节点，采用synchronized锁定链表或红黑二叉树的首节点，相对Segment分段锁粒度更细，性能更好**
+  - 在`ConcurrentHashMap`中，每个键值对都是一个独立的节点（Node），每个节点都可以被CAS操作独立地更新。
 
 
 ### callable
@@ -2536,7 +2537,7 @@ Thread-2我是懒汉式单例
 Thread-1我是懒汉式单例
 ```
 
-发现执行了多次，**多线程不安全！！！**
+发现执行了多次，**多线程不安全！！！**因为当多个线程同时调用 `getInstance()` 方法时，它们都可以检查到 `lazyMan` 对象为 null，并且都会进入 `if (lazyMan== null)` 分支内。然后，每个线程都会创建一个 `lazyMan` 对象，并将其赋值给 `lazyMan` 变量。
 
 #### 双重检查锁
 
@@ -2584,6 +2585,13 @@ public class DCL_LazyMan {
 ```java
 private static volatile DCL_LazyMan dcl_lazyMan;
 ```
+
+如果不使用 `volatile` 关键字来修饰 `instance` 对象，可能会出现以下问题：
+
+1. **指令重排序问题**：在多线程环境下，由于指令重排序的存在，可能会导致对象的初始化过程被重排序，使得其他线程在对象尚未完全初始化完成时就获取到了未完全初始化的对象，从而导致程序出现错误。
+2. **可见性问题**：当一个线程初始化了单例对象后，其他线程可能无法立即感知到该变化，导致其他线程仍然认为对象为 null，进而重复创建实例。
+
+
 
 再思考一个问题，现在就一定安全了吗？**反射也会导致不安全！**
 
