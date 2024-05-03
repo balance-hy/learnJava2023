@@ -394,6 +394,15 @@ while (iterator1.hasNext()) {
 }
 ```
 #### Hashtable HashMap安全版
+
+```
+Hashtable在Java中是一个非常早期的数据结构，它提供了线程安全的键值对映射。然而，Hashtable的性能不如一些其他的数据结构，如HashMap，主要有以下几个原因：
+
+同步锁：Hashtable的所有公共方法都是同步的，这意味着在多线程环境中，任何时候只有一个线程可以访问Hashtable。这种全局锁的机制在高并发环境下会成为性能瓶颈，因为其他线程都必须等待当前操作完成才能进行下一次操作。
+
+无法接受null：Hashtable不允许键或值为null，这在某些情况下可能会限制其使用。
+```
+
 1. 存放的元素是键值对
 2. Hashtable的键和值都不能为NULL,否则会抛出异常
 3. Hashtable使用方法基本上和HashMap一样

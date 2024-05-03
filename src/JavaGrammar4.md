@@ -974,6 +974,12 @@ class Data4{
 
 ![image-20240327133243863](https://raw.githubusercontent.com/balance-hy/typora/master/thinkbook/image-20240327133243863.png)
 
+> synchronized的await notify、Lock的Condition.await signal以及LockSupport的park unpark 三种方式的区别？
+
+1. **`synchronized`的`wait`/`notify`**：这是Java最基本的线程同步机制。当一个线程调用了一个对象的`wait`方法后，它会释放对该对象的锁，然后进入等待状态，直到其他线程调用同一个对象的`notify`或`notifyAll`方法。**`wait`/`notify`方法必须在`synchronized`块或方法中使用**，否则会抛出`IllegalMonitorStateException`。
+2. **`Lock`的`Condition.await`/`signal`**：这是一个更灵活的线程同步机制。与`synchronized`的`wait`/`notify`相比，`Condition`提供了更多的功能，例如可以有多个等待队列（每个`Condition`对象对应一个等待队列），可以选择性地唤醒等待队列中的线程等。**`await`/`signal`方法必须在`Lock.lock`和`Lock.unlock`方法中使用**，否则会抛出`IllegalMonitorStateException`。
+3. **`LockSupport.park`/`unpark`**：这是一个最底层的线程阻塞机制。**与上面两种方式相比，`LockSupport`的优点是它不需要获取对象的锁或者`Lock`对象**，可以直接阻塞或唤醒任何线程。此外，`unpark`方法可以在`park`方法之前调用，这使得`LockSupport`可以避免一些因为`wait`/`notify`或`await`/`signal`的调用顺序不正确而导致的问题。
+
 ### 八锁现象
 
 如何判断锁的是谁！锁到底锁的是谁？
@@ -1490,6 +1496,8 @@ public class Test10_CyclicBarrier {
 
 `Semaphore` 的典型用法是控制对共享资源的并发访问数量。例如，可以用 `Semaphore` 来限制同时访问某个文件的线程数量，或者限制同时执行某个任务的线程数量
 
+**所以，即使Semaphore的初始许可数为0，也可以通过调用release()方法来增加许可数。这是Semaphore用于同步控制的一种机制。**可以利用此控制线程的执行顺序
+
 ```java
 public class Test11_Semaphore {
     public static void main(String[] args) {
@@ -1805,6 +1813,8 @@ public class Test14_SynchronousQueue {
 ==线程复用、可以控制最大并发数、管理线程==
 
 #### 三大方法-常用
+
+这些方法创建的线程池中的线程是守护线程，如果主线程退出，这些线程也会被自动销毁。如果你希望主线程退出后，线程池中的线程仍然执行，你需要手动创建非守护线程，并将它们添加到线程池中。
 
 ```java
 public class Demo01_ThreeFunc {
@@ -3059,7 +3069,7 @@ public class CAS_Test {
 
 #### 可重入锁
 
-* 可重入锁（Reentrant Lock）是一种支持重入（**拿到外面的锁就可以拿到里面的锁**）的锁机制，也称为**递归锁**。
+* 可重入锁的一个主要特性是，如果一个线程已经持有了某个锁，那么它可以再次获取同一个锁，而不会导致自己被阻塞。这种特性可以使得同一个线程在访问多个同步代码块时，只需要获取一次锁，可以避免死锁的发生。
 
 - 在可重入锁中，每个线程都维护着一个持有锁的计数器，当线程第一次获得锁时，计数器会加一，每次进入同步代码块时计数器都会递增；
 - 当退出同步代码块时，计数器会递减。只有当计数器为零时，锁才会完全释放，其他线程才能获得锁。
