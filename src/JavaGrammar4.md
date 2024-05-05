@@ -1382,7 +1382,7 @@ public class Test07_Map {
 
 - `HashMap` 是 Java 中最常用的哈希表实现之一，它是非线程安全的。
 - 在单线程环境下，`HashMap` 提供了较高的性能，因为它不涉及额外的同步开销。
-- 在多线程环境下，如果多个线程同时访问或修改同一个 `HashMap` 实例，可能会导致不确定的结果，甚至抛出 `ConcurrentModificationException` 异常。
+- 在多线程环境下，如果多个线程同时为什么hashmap采用尾插而不是头插访问或修改同一个 `HashMap` 实例，可能会导致不确定的结果，甚至抛出 `ConcurrentModificationException` 异常。
 
 **ConcurrentHashMap**:
 
@@ -1391,7 +1391,7 @@ public class Test07_Map {
 - JDK1.8采用的数据结构跟HashMap1.8的结构一样，数组+链表/红黑二叉树
 - 加锁的方式
   - JDK1.7采用Segment分段锁，底层使用的是ReentrantLock
-  - **JDK1.8采用CAS添加新节点，采用synchronized锁定链表或红黑二叉树的首节点，相对Segment分段锁粒度更细，性能更好**
+  - **JDK1.8采用CAS设置新节点，采用synchronized锁定链表或红黑二叉树的首节点，相对Segment分段锁粒度更细，性能更好**
   - 在`ConcurrentHashMap`中，每个键值对都是一个独立的节点（Node），每个节点都可以被CAS操作独立地更新。
 
 
